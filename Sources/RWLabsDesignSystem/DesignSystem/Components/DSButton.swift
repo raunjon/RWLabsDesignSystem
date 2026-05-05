@@ -139,8 +139,7 @@ public struct DSButton: View {
                             .frame(width: 20, height: 20)
                     }
 
-                    Text(title)
-                        .fontStyle(size.fontStyle)
+                    DSText(title, style: size.fontStyle, color: variant.foregroundColor)
                         .underline(variant.isLink)
                 }
             }

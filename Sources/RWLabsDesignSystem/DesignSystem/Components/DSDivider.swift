@@ -74,9 +74,7 @@ public struct DSDivider: View {
                     .fill(color)
                     .frame(height: thickness)
 
-                Text(label!)
-                    .fontStyle(.caption)
-                    .foregroundColor(Color.Text.tertiary)
+                DSText(label!, style: .caption, color: .Text.tertiary)
 
                 Rectangle()
                     .fill(color)
@@ -88,9 +86,7 @@ public struct DSDivider: View {
                     .fill(color)
                     .frame(width: thickness)
 
-                Text(label!)
-                    .fontStyle(.caption)
-                    .foregroundColor(Color.Text.tertiary)
+                DSText(label!, style: .caption, color: .Text.tertiary)
                     .rotationEffect(.degrees(-90))
 
                 Rectangle()
@@ -110,19 +106,19 @@ public struct DSDivider: View {
         DSDivider(label: "OR")
 
         VStack(spacing: .sm) {
-            Text("Section 1")
-            Text("Content here")
+            DSText("Section 1", style: .body, color: .Text.primary)
+            DSText("Content here", style: .body, color: .Text.primary)
 
             DSDivider()
 
-            Text("Section 2")
-            Text("More content")
+            DSText("Section 2", style: .body, color: .Text.primary)
+            DSText("More content", style: .body, color: .Text.primary)
         }
 
         HStack {
-            Text("Left")
+            DSText("Left", style: .body, color: .Text.primary)
             DSDivider(axis: .vertical)
-            Text("Right")
+            DSText("Right", style: .body, color: .Text.primary)
         }
         .frame(height: 50)
     }

@@ -37,15 +37,11 @@ public struct DSToast: View {
                     .font(.system(size: 16))
                 VStack(alignment: .leading, spacing: .s0) {
                     if let title {
-                        Text(title)
-                            .fontStyle(.subheadiline)
-                            .foregroundColor(Color.Text.primary)
+                        DSText(title, style: .subheadiline, color: .Text.primary)
                             .padding(.bottom, .s2)
                     }
                     if let message {
-                        Text(message)
-                            .fontStyle(.bodySmall)
-                            .foregroundColor(Color.Text.secondary)
+                        DSText(message, style: .bodySmall, color: .Text.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -133,22 +129,14 @@ struct DSToast_Previews: PreviewProvider {
     static var previews: some View {
         VStack(spacing: .sm) {
             // Toast example in a separate view would need state management
-            Text("Toast appears at the top with auto-dismiss")
-                .fontStyle(.caption)
-                .foregroundColor(Color.Text.tertiary)
+            DSText("Toast appears at the top with auto-dismiss", style: .caption, color: .Text.tertiary)
                 .toast(isShowing: .constant(true), type: .success, title: "Test", message: "Toast appears at the top with auto-dismiss")
-            Text("Toast appears at the top with auto-dismiss")
-                .fontStyle(.caption)
-                .foregroundColor(Color.Text.tertiary)
+            DSText("Toast appears at the top with auto-dismiss", style: .caption, color: .Text.tertiary)
                 .toast(isShowing: .constant(true), type: .error, message: "Test")
-            Text("Toast appears at the top with auto-dismiss")
-                .fontStyle(.caption)
-                .foregroundColor(Color.Text.tertiary)
+            DSText("Toast appears at the top with auto-dismiss", style: .caption, color: .Text.tertiary)
                 .toast(isShowing: .constant(true), type: .warning, message: "Test")
-            
-            Text("Toast appears at the top with auto-dismiss")
-                .fontStyle(.caption)
-                .foregroundColor(Color.Text.tertiary)
+
+            DSText("Toast appears at the top with auto-dismiss", style: .caption, color: .Text.tertiary)
                 .toast(isShowing: .constant(true), type: .info, message: "Test")
         }
         .padding()

@@ -60,9 +60,7 @@ public struct DSTooltip: View {
                 arrow
             }
 
-            Text(text)
-                .fontStyle(.bodySmall)
-                .foregroundStyle(style.textColor)
+            DSText(text, style: .bodySmall, color: style.textColor)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, .sm)
                 .padding(.vertical, .xs)
@@ -230,9 +228,7 @@ public extension View {
                         }
                     }
 
-                Text("Tap icon to toggle")
-                    .fontStyle(.caption)
-                    .foregroundStyle(Color.Text.secondary)
+                DSText("Tap icon to toggle", style: .caption, color: .Text.secondary)
 
                 Spacer()
             }

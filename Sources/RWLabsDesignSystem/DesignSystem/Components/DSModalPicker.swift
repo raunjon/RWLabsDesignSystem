@@ -186,9 +186,7 @@ public struct DSModalPicker<T: Identifiable & Equatable & Hashable>: View where 
         VStack(alignment: .leading, spacing: .xs) {
             // Label
             if let label = label {
-                Text(label)
-                    .fontStyle(.bodySmall)
-                    .foregroundColor(Color.Text.secondary)
+                DSText(label, style: .bodySmall, color: .Text.secondary)
             }
 
             // Trigger Button
@@ -204,9 +202,7 @@ public struct DSModalPicker<T: Identifiable & Equatable & Hashable>: View where 
                             .foregroundColor(Color.Text.tertiary)
                     }
 
-                    Text(displayValue)
-                        .fontStyle(.body)
-                        .foregroundColor(hasSelection ? Color.Text.primary : Color.Text.tertiary)
+                    DSText(displayValue, style: .body, color: hasSelection ? .Text.primary : .Text.tertiary)
 
                     Spacer()
 
@@ -272,9 +268,7 @@ private struct ModalPickerContent<T: Identifiable & Equatable & Hashable>: View 
                             handleSelection(option)
                         }) {
                             HStack {
-                                Text(displayText(option))
-                                    .fontStyle(.body)
-                                    .foregroundColor(Color.Text.primary)
+                                DSText(displayText(option), style: .body, color: .Text.primary)
 
                                 Spacer()
 
@@ -389,13 +383,9 @@ private struct EmptySearchState: View {
                 .font(.system(size: 48))
                 .foregroundColor(Color.Text.tertiary)
 
-            Text("No results found")
-                .fontStyle(.headline)
-                .foregroundColor(Color.Text.primary)
+            DSText("No results found", style: .headline, color: .Text.primary)
 
-            Text("Try adjusting your search")
-                .fontStyle(.body)
-                .foregroundColor(Color.Text.secondary)
+            DSText("Try adjusting your search", style: .body, color: .Text.secondary)
 
             Spacer()
         }
@@ -505,8 +495,7 @@ public struct PickerOption: Identifiable, Equatable, Hashable {
                 )
 
                 if let city = selectedCity {
-                    Text("Selected: \(city)")
-                        .fontStyle(.caption)
+                    DSText("Selected: \(city)", style: .caption, color: .Text.primary)
                 }
 
                 Spacer()
@@ -539,13 +528,10 @@ public struct PickerOption: Identifiable, Equatable, Hashable {
 
                 if !selectedCities.isEmpty {
                     VStack(alignment: .leading, spacing: .xs) {
-                        Text("Selected cities:")
-                            .fontStyle(.caption)
-                            .foregroundColor(Color.Text.secondary)
+                        DSText("Selected cities:", style: .caption, color: .Text.secondary)
 
                         ForEach(Array(selectedCities).sorted(), id: \.self) { city in
-                            Text("• \(city)")
-                                .fontStyle(.bodySmall)
+                            DSText("• \(city)", style: .bodySmall, color: .Text.primary)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)

@@ -32,19 +32,15 @@ public struct DSBanner: View {
                 .foregroundColor(type.color)
                 .fontStyle(.title3)
 
-            Text(message)
-                .fontStyle(.bodyMedium)
-                .foregroundColor(Color.Text.primary)
+            DSText(message, style: .bodyMedium, color: .Text.primary)
                 .lineLimit(2)
 
             Spacer()
 
             if let actionTitle = actionTitle, let action = action {
                 Button(action: action) {
-                    Text(actionTitle)
-                        .fontStyle(.bodySmall)
+                    DSText(actionTitle, style: .bodySmall, color: type.color)
                         .fontWeight(.semibold)
-                        .foregroundColor(type.color)
                 }
             }
         }

@@ -227,9 +227,7 @@ public extension String {
             DSAvatar(initials: "JD", size: .xlarge)
         }
 
-        Text("Sizes: Small, Medium, Large, XLarge")
-            .fontStyle(.caption)
-            .foregroundColor(Color.Text.secondary)
+        DSText("Sizes: Small, Medium, Large, XLarge", style: .caption, color: .Text.secondary)
     }
     .padding()
 }
@@ -239,26 +237,22 @@ public extension String {
         HStack(spacing: .lg) {
             VStack {
                 DSAvatar(initials: "JD", size: .large, status: .online)
-                Text("Online")
-                    .fontStyle(.caption)
+                DSText("Online", style: .caption, color: .Text.primary)
             }
 
             VStack {
                 DSAvatar(initials: "SM", size: .large, status: .offline)
-                Text("Offline")
-                    .fontStyle(.caption)
+                DSText("Offline", style: .caption, color: .Text.primary)
             }
 
             VStack {
                 DSAvatar(initials: "KL", size: .large, status: .away)
-                Text("Away")
-                    .fontStyle(.caption)
+                DSText("Away", style: .caption, color: .Text.primary)
             }
 
             VStack {
                 DSAvatar(initials: "RM", size: .large, status: .busy)
-                Text("Busy")
-                    .fontStyle(.caption)
+                DSText("Busy", style: .caption, color: .Text.primary)
             }
         }
     }
@@ -279,9 +273,7 @@ public extension String {
             maxVisible: 3
         )
 
-        Text("5 members")
-            .fontStyle(.caption)
-            .foregroundColor(Color.Text.secondary)
+        DSText("5 members", style: .caption, color: .Text.secondary)
     }
     .padding()
 }
@@ -292,9 +284,7 @@ public extension String {
         DSAvatar(initials: "Sarah Miller".avatarInitials, size: .large)
         DSAvatar(initials: "Kim Lee".avatarInitials, size: .large)
 
-        Text("Initials extracted from names")
-            .fontStyle(.caption)
-            .foregroundColor(Color.Text.secondary)
+        DSText("Initials extracted from names", style: .caption, color: .Text.secondary)
     }
     .padding()
 }

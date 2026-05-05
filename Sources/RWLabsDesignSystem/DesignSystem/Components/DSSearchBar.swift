@@ -131,13 +131,7 @@ public struct DSSearchBarWithFilters: View {
                                     selectedFilter = filter
                                 }
                             }) {
-                                Text(filter)
-                                    .fontStyle(.bodySmall)
-                                    .foregroundColor(
-                                        selectedFilter == filter
-                                            ? Color.Background.primary
-                                            : Color.Text.primary
-                                    )
+                                DSText(filter, style: .bodySmall, color: selectedFilter == filter ? .Background.primary : .Text.primary)
                                     .padding(.horizontal, .sm)
                                     .padding(.vertical, .xs)
                                     .background(
@@ -171,9 +165,7 @@ public struct DSSearchBarWithFilters: View {
                 )
 
                 if !searchText.isEmpty {
-                    Text("Searching for: \"\(searchText)\"")
-                        .fontStyle(.caption)
-                        .foregroundColor(Color.Text.secondary)
+                    DSText("Searching for: \"\(searchText)\"", style: .caption, color: .Text.secondary)
                 }
 
                 Spacer()
@@ -205,16 +197,13 @@ public struct DSSearchBarWithFilters: View {
 
                 VStack(alignment: .leading, spacing: .xs) {
                     if !searchText.isEmpty {
-                        Text("Query: \"\(searchText)\"")
-                            .fontStyle(.bodySmall)
+                        DSText("Query: \"\(searchText)\"", style: .bodySmall, color: .Text.secondary)
                     }
 
                     if let filter = selectedFilter {
-                        Text("Filter: \(filter)")
-                            .fontStyle(.bodySmall)
+                        DSText("Filter: \(filter)", style: .bodySmall, color: .Text.secondary)
                     }
                 }
-                .foregroundColor(Color.Text.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 Spacer()
@@ -260,16 +249,13 @@ public struct DSSearchBarWithFilters: View {
                             .font(.system(size: 48))
                             .foregroundColor(Color.Text.tertiary)
 
-                        Text("No results found")
-                            .fontStyle(.headline)
-                            .foregroundColor(Color.Text.primary)
+                        DSText("No results found", style: .headline, color: .Text.primary)
 
                         Spacer()
                     }
                 } else {
                     List(filteredResults, id: \.self) { result in
-                        Text(result)
-                            .fontStyle(.body)
+                        DSText(result, style: .body, color: .Text.primary)
                     }
                     .listStyle(.plain)
                 }

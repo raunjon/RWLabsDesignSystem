@@ -34,15 +34,11 @@ public struct DSActionSheet: View {
             if title != nil || message != nil {
                 VStack(spacing: .xs) {
                     if let title = title {
-                        Text(title)
-                            .fontStyle(.headline)
-                            .foregroundColor(Color.Text.primary)
+                        DSText(title, style: .headline, color: .Text.primary)
                     }
 
                     if let message = message {
-                        Text(message)
-                            .fontStyle(.bodySmall)
-                            .foregroundColor(Color.Text.secondary)
+                        DSText(message, style: .bodySmall, color: .Text.secondary)
                             .multilineTextAlignment(.center)
                     }
                 }
@@ -69,11 +65,9 @@ public struct DSActionSheet: View {
                                     .frame(width: 20, height: 20)
                                     .foregroundColor(action.role == .destructive ? Color.Semantic.error : Color.Text.primary)
                             }
-                            
-                            Text(action.title)
-                                .fontStyle(.body)
-                                .foregroundColor(action.role == .destructive ? Color.Semantic.error : Color.Text.primary)
-                            
+
+                            DSText(action.title, style: .body, color: action.role == .destructive ? .Semantic.error : .Text.primary)
+
                             Spacer()
                         }
                         .frame(maxWidth: .infinity)
@@ -100,9 +94,7 @@ public struct DSActionSheet: View {
                         isPresented = false
                     }
                 }) {
-                    Text(cancelAction.title)
-                        .fontStyle(.body)
-                        .foregroundColor(Color.Semantic.error)
+                    DSText(cancelAction.title, style: .body, color: .Semantic.error)
                         .frame(maxWidth: .infinity)
                         .padding(.md)
                         .background(Color.Background.primary)

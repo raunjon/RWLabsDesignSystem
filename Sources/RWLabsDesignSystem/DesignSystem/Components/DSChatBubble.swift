@@ -152,23 +152,18 @@ public struct DSChatBubble: View {
             VStack(alignment: variant.alignment, spacing: .xxs) {
                 // Message bubble
                 VStack(alignment: .leading, spacing: .xxs) {
-                    Text(message)
-                        .fontStyle(.body)
-                        .foregroundColor(variant.textColor)
+                    DSText(message, style: .body, color: variant.textColor)
                         .fixedSize(horizontal: false, vertical: true)
 
                     // Timestamp and status
                     if timestamp != nil || status != nil {
                         HStack(spacing: .xxs) {
                             if let timestamp = timestamp {
-                                Text(timestamp)
-                                    .fontStyle(.caption2)
-                                    .foregroundColor(variant.timestampColor)
+                                DSText(timestamp, style: .caption2, color: variant.timestampColor)
                             }
 
                             if let status = status, variant == .sender {
                                 Image(systemName: status.icon)
-                                    .fontStyle(.caption2)
                                     .foregroundColor(status.iconColor)
                             }
                         }
@@ -222,9 +217,7 @@ public struct DSChatBubble: View {
                 .fill(Color.Icon.brand)
                 .frame(width: 32, height: 32)
                 .overlay(
-                    Text(avatarInitials ?? "")
-                        .fontStyle(.bodyMedium)
-                        .foregroundColor(Color.Icon.brandAccent)
+                    DSText(avatarInitials ?? "", style: .bodyMedium, color: Color.Icon.brandAccent)
                 ))
         } else {
             AnyView(placeholderView)
@@ -350,16 +343,13 @@ public struct DSChatMediaBubble: View {
                             .cornerRadius(.md)
                             .overlay(
                                 Image(systemName: "photo")
-                                    .fontStyle(.largeTitle)
                                     .foregroundColor(Color.Icon.placeholder)
                             )
                     }
 
                     // Caption
                     if let caption = caption {
-                        Text(caption)
-                            .fontStyle(.bodySmall)
-                            .foregroundColor(variant.textColor)
+                        DSText(caption, style: .bodySmall, color: variant.textColor)
                             .padding(.horizontal, .xs)
                     }
 
@@ -367,14 +357,11 @@ public struct DSChatMediaBubble: View {
                     if timestamp != nil || status != nil {
                         HStack(spacing: .xxs) {
                             if let timestamp = timestamp {
-                                Text(timestamp)
-                                    .fontStyle(.caption2)
-                                    .foregroundColor(variant.timestampColor)
+                                DSText(timestamp, style: .caption2, color: variant.timestampColor)
                             }
 
                             if let status = status, variant == .sender {
                                 Image(systemName: status.icon)
-                                    .fontStyle(.caption2)
                                     .foregroundColor(status.iconColor)
                             }
                         }
@@ -409,10 +396,7 @@ public struct DSChatMediaBubble: View {
                 .fill(Color.Background.brandInverse)
                 .frame(width: 32, height: 32)
                 .overlay(
-                    Text(avatarInitials)
-                        .fontStyle(.captionSemi)
-                        .fontStyle(.caption)
-                        .foregroundColor(Color.Text.brand)
+                    DSText(avatarInitials, style: .caption, color: Color.Text.brand)
                 )
         } else {
             Circle()
@@ -420,7 +404,6 @@ public struct DSChatMediaBubble: View {
                 .frame(width: 32, height: 32)
                 .overlay(
                     Image(systemName: "person.fill")
-                        .fontStyle(.bodyMedium)
                         .foregroundColor(Color.Icon.placeholder)
                 )
         }

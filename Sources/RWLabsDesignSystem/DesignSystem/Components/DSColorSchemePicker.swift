@@ -15,9 +15,7 @@ public struct DSColorSchemePicker: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: .md) {
-            Text("Appearance")
-                .fontStyle(.headline)
-                .foregroundColor(Color.Text.primary)
+            DSText("Appearance", style: .headline, color: .Text.primary)
 
             HStack(spacing: .md) {
                 ForEach(DSColorSchemePreference.allCases) { scheme in
@@ -46,9 +44,7 @@ private struct ColorSchemeButton: View {
                     .fontStyle(.title1)
                     .foregroundColor(isSelected ? Color.Text.brand: Color.Text.secondary)
 
-                Text(scheme.displayName)
-                    .fontStyle(.caption)
-                    .foregroundColor(isSelected ? Color.Text.brand : Color.Text.secondary)
+                DSText(scheme.displayName, style: .caption, color: isSelected ? .Text.brand : .Text.secondary)
             }
             .frame(maxWidth: .infinity)
             .padding(.md)
@@ -78,8 +74,7 @@ public struct DSColorSchemePickerCompact: View {
                         Image(systemName: scheme.icon)
                             .fontStyle(.body)
 
-                        Text(scheme.displayName)
-                            .fontStyle(.bodySmall)
+                        DSText(scheme.displayName, style: .bodySmall, color: schemeManager.selectedScheme == scheme ? .white : .Text.primary)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, .sm)
@@ -87,11 +82,6 @@ public struct DSColorSchemePickerCompact: View {
                         schemeManager.selectedScheme == scheme
                             ? Color.Background.brand
                             : Color.clear
-                    )
-                    .foregroundColor(
-                        schemeManager.selectedScheme == scheme
-                            ? .white
-                            : Color.Text.primary
                     )
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -150,7 +140,7 @@ public struct DSColorSchemeMenu: View {
 #Preview("Menu Style") {
     NavigationView {
         VStack {
-            Text("Content")
+            DSText("Content", style: .body, color: .Text.primary)
         }
         .navigationTitle("Settings")
         .toolbar {

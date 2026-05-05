@@ -86,16 +86,9 @@ public struct DSMobileInputField: View {
             // Country Code Dropdown
             DSPicker(selection: $selectedCountryCode, options: CountryCode.all) {
                 HStack(spacing: .s8) {
-                    Text(selectedCountryCode.flag)
-                        .font(.system(size: 16))
-                        .fontStyle(.body)
-
-                    Text(selectedCountryCode.code)
-                        .fontStyle(.body)
-                        .foregroundColor(Color.Text.primary)
-
+                    DSText(selectedCountryCode.flag, style: .body)
+                    DSText(selectedCountryCode.code, style: .body)
                     Image(systemName: "chevron.down")
-                        .fontStyle(.captionSemi)
                         .foregroundColor(Color.Icon.secondary)
                 }
                 .frame(height: 46)
@@ -111,7 +104,6 @@ public struct DSMobileInputField: View {
             // Phone Number Input Field
             HStack(spacing: .s8) {
                 TextField("Enter your number", text: $mobile)
-                    .fontStyle(.body)
                     .foregroundColor(Color.Text.primary)
                     .keyboardType(.numberPad)
                     .accentColor(Color.Icon.brand)

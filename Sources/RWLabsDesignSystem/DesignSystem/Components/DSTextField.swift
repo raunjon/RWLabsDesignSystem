@@ -97,9 +97,7 @@ public struct DSTextField: View {
         VStack(alignment: .leading, spacing: .xs) {
             // Label
             if let label = label {
-                Text(label)
-                    .fontStyle(.bodySmall)
-                    .foregroundColor(Color.Text.secondary)
+                DSText(label, style: .bodySmall, color: Color.Text.secondary)
             }
 
             // Input Field
@@ -114,7 +112,6 @@ public struct DSTextField: View {
 
                 if isSecure {
                     SecureField(placeholder, text: $text)
-                        .fontStyle(.body)
                         .disabled(isDisabled)
                         .focused($isFocused)
                         .keyboardType(keyboardType)
@@ -122,7 +119,6 @@ public struct DSTextField: View {
                         .textInputAutocapitalization(autocapitalization == .none ? .never : (autocapitalization == .words ? .words : (autocapitalization == .sentences ? .sentences : .characters)))
                 } else {
                     TextField(placeholder, text: $text)
-                        .fontStyle(.body)
                         .disabled(isDisabled)
                         .focused($isFocused)
                         .keyboardType(keyboardType)
@@ -147,14 +143,10 @@ public struct DSTextField: View {
                     Image(systemName: "exclamationmark.circle.fill")
                         .foregroundColor(Color.Semantic.error)
                         .font(.system(size: 12))
-                    Text(errorMessage)
-                        .fontStyle(.caption)
-                        .foregroundColor(Color.Semantic.error)
+                    DSText(errorMessage, style: .caption, color: Color.Semantic.error)
                 }
             } else if let helperText = helperText {
-                Text(helperText)
-                    .fontStyle(.caption)
-                    .foregroundColor(Color.Text.tertiary)
+                DSText(helperText, style: .caption, color: Color.Text.tertiary)
             }
         }
     }
@@ -206,23 +198,18 @@ public struct DSTextArea: View {
         VStack(alignment: .leading, spacing: .xs) {
             // Label
             if let label = label {
-                Text(label)
-                    .fontStyle(.bodySmall)
-                    .foregroundColor(Color.Text.secondary)
+                DSText(label, style: .bodySmall, color: Color.Text.secondary)
             }
 
             // Text Editor
             ZStack(alignment: .topLeading) {
                 if text.isEmpty {
-                    Text(placeholder)
-                        .fontStyle(.body)
-                        .foregroundColor(Color.Text.tertiary)
+                    DSText(placeholder, style: .body, color: Color.Text.tertiary)
                         .padding(.horizontal, DSSpacing.Component.inputPadding)
                         .padding(.vertical, DSSpacing.Component.inputPadding)
                 }
 
                 TextEditor(text: $text)
-                    .fontStyle(.body)
                     .disabled(isDisabled)
                     .focused($isFocused)
                     .padding(.xs)
@@ -245,14 +232,10 @@ public struct DSTextArea: View {
                     Image(systemName: "exclamationmark.circle.fill")
                         .foregroundColor(Color.Semantic.error)
                         .font(.system(size: 12))
-                    Text(errorMessage)
-                        .fontStyle(.caption)
-                        .foregroundColor(Color.Semantic.error)
+                    DSText(errorMessage, style: .caption, color: Color.Semantic.error)
                 }
             } else if let helperText = helperText {
-                Text(helperText)
-                    .fontStyle(.caption)
-                    .foregroundColor(Color.Text.tertiary)
+                DSText(helperText, style: .caption, color: Color.Text.tertiary)
             }
         }
     }
@@ -306,6 +289,13 @@ public struct DSText: View {
     @State public var text: String
     public var style: DSTypography.Style = .body
     public var color: Color = .Text.primary
+    
+    public init(_ text: String, style: DSTypography.Style = .body, color: Color = .Text.primary) {
+        self.text = text
+        self.style = style
+        self.color = color
+    }
+    
     public var body: some View {
         Text(text)
             .typography(style, color: color)

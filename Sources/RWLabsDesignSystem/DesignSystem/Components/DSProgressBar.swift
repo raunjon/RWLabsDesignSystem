@@ -51,17 +51,13 @@ public struct DSProgressBar: View {
             if label != nil || showPercentage {
                 HStack {
                     if let label = label {
-                        Text(label)
-                            .fontStyle(.bodyMedium)
-                            .foregroundColor(Color.Text.primary)
+                        DSText(label, style: .bodyMedium, color: .Text.primary)
                     }
 
                     Spacer()
 
                     if showPercentage && style == .determinate {
-                        Text("\(Int(value * 100))%")
-                            .fontStyle(.bodyMedium)
-                            .foregroundColor(Color.Text.secondary)
+                        DSText("\(Int(value * 100))%", style: .bodyMedium, color: .Text.secondary)
                     }
                 }
             }

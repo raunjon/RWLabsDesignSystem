@@ -87,15 +87,11 @@ public struct DSAlert: View {
 
             // Content
             VStack(alignment: .leading, spacing: .xxs) {
-                Text(title)
-                    .fontStyle(.bodyMedium)
+                DSText(title, style: .bodyMedium, color: .Text.primary)
                     .fontWeight(.semibold)
-                    .foregroundColor(Color.Text.primary)
 
                 if let message = message {
-                    Text(message)
-                        .fontStyle(.bodySmall)
-                        .foregroundColor(Color.Text.secondary)
+                    DSText(message, style: .bodySmall, color: .Text.secondary)
                 }
             }
 

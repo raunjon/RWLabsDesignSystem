@@ -43,9 +43,7 @@ public struct DSOptionalPicker<T: Hashable & CustomStringConvertible>: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: .xs) {
             if let label = label {
-                Text(label)
-                    .fontStyle(.bodyMedium)
-                    .foregroundColor(isDisabled ? Color.Text.tertiary : Color.Text.primary)
+                DSText(label, style: .bodyMedium, color: isDisabled ? .Text.tertiary : .Text.primary)
             }
 
             Menu {
@@ -85,9 +83,7 @@ public struct DSOptionalPicker<T: Hashable & CustomStringConvertible>: View {
                             .foregroundColor(Color.Text.tertiary)
                     }
 
-                    Text(selection?.description ?? placeholder)
-                        .fontStyle(.body)
-                        .foregroundColor(selection == nil ? Color.Text.tertiary : Color.Text.primary)
+                    DSText(selection?.description ?? placeholder, style: .body, color: selection == nil ? .Text.tertiary : .Text.primary)
 
                     Spacer()
 

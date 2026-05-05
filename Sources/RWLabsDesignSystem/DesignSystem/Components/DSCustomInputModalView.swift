@@ -233,9 +233,7 @@ public struct DSCustomInputModalView: View {
             VStack(spacing: .sm) {
                 // Title
                 if let title = title {
-                    Text(title)
-                        .fontStyle(.title2)
-                        .foregroundStyle(Color.Text.primary)
+                    DSText(title, style: .title2, color: Color.Text.primary)
                         .multilineTextAlignment(.center)
                         .padding(.top, .md)
                         .padding(.horizontal, .lg)
@@ -243,8 +241,7 @@ public struct DSCustomInputModalView: View {
 
                 // Subtitle
                 if let subtitle = subtitle {
-                    Text(subtitle)
-                        .typography(.bodyMedium, color: Color.Text.secondary)
+                    DSText(subtitle, style: .bodyMedium, color: Color.Text.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.top, .xxs)
                         .padding(.horizontal, .lg)
@@ -359,11 +356,9 @@ private struct DSCustomInputView: View {
             VStack(alignment: .leading, spacing: .xs) {
                 if let label = config.label {
                     HStack {
-                        Text(label)
-                            .typography(.bodyMedium, color: Color.Text.primary)
+                        DSText(label, style: .bodyMedium, color: Color.Text.primary)
                         Spacer()
-                        Text(String(format: "%.1f", config.value))
-                            .typography(.bodyMedium, color: Color.Text.secondary)
+                        DSText(String(format: "%.1f", config.value), style: .bodyMedium, color: Color.Text.secondary)
                     }
                 }
 
@@ -376,8 +371,7 @@ private struct DSCustomInputView: View {
 
         case .stepper(let config):
             HStack {
-                Text(config.label)
-                    .typography(.bodyMedium, color: Color.Text.primary)
+                DSText(config.label, style: .bodyMedium, color: Color.Text.primary)
 
                 Spacer()
 

@@ -63,9 +63,7 @@ public struct DSPicker<T: Hashable & CustomStringConvertible>: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: .xs) {
             if let label = label {
-                Text(label)
-                    .fontStyle(.bodyMedium)
-                    .foregroundColor(isDisabled ? Color.Text.disabled : Color.Text.primary)
+                DSText(label, style: .bodyMedium, color: isDisabled ? Color.Text.disabled : Color.Text.primary)
             }
 
             Menu {
@@ -92,9 +90,7 @@ public struct DSPicker<T: Hashable & CustomStringConvertible>: View {
                                 .foregroundColor(Color.Text.disabled)
                         }
                         
-                        Text(selection.description)
-                            .fontStyle(.body)
-                            .foregroundColor(Color.Text.primary)
+                        DSText(selection.description, style: .body, color: Color.Text.primary)
                         
                         Spacer()
                         

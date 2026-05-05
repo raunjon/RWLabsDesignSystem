@@ -55,9 +55,7 @@ public struct DSChip: View {
                     .foregroundColor(textColor)
             }
 
-            Text(title)
-                .fontStyle(.bodySmall)
-                .foregroundColor(textColor)
+            DSText(title, style: .bodySmall, color: textColor)
 
             if isDismissible {
                 Button(action: {

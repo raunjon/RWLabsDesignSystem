@@ -52,14 +52,10 @@ public struct DSListRow: View {
 
                 // Title and subtitle
                 VStack(alignment: .leading, spacing: .xxs) {
-                    Text(title)
-                        .fontStyle(.body)
-                        .foregroundColor(Color.Text.primary)
+                    DSText(title, style: .body, color: Color.Text.primary)
 
                     if let subtitle = subtitle {
-                        Text(subtitle)
-                            .fontStyle(.bodySmall)
-                            .foregroundColor(Color.Text.secondary)
+                        DSText(subtitle, style: .bodySmall, color: Color.Text.secondary)
                     }
                 }
 
@@ -67,9 +63,7 @@ public struct DSListRow: View {
 
                 // Value
                 if let value = value {
-                    Text(value)
-                        .fontStyle(.body)
-                        .foregroundColor(Color.Text.secondary)
+                    DSText(value, style: .body, color: Color.Text.secondary)
                 }
 
                 // Accessory
@@ -147,9 +141,7 @@ public struct DSListSection<Content: View>: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: .xs) {
             if let title = title {
-                Text(title.uppercased())
-                    .fontStyle(.caption)
-                    .foregroundColor(Color.Text.secondary)
+                DSText(title.uppercased(), style: .caption, color: Color.Text.secondary)
                     .padding(.horizontal, .md)
                     .padding(.top, .sm)
             }
@@ -162,9 +154,7 @@ public struct DSListSection<Content: View>: View {
             .border(.Border.inverse, lineWidth: 1, cornerRadius: .radiusMD)
 
             if let footer = footer {
-                Text(footer)
-                    .fontStyle(.caption)
-                    .foregroundColor(Color.Text.tertiary)
+                DSText(footer, style: .caption, color: Color.Text.tertiary)
                     .padding(.horizontal, .md)
             }
         }

@@ -56,17 +56,13 @@ public struct DSSlider: View {
             if label != nil || showValue {
                 HStack {
                     if let label = label {
-                        Text(label)
-                            .fontStyle(.bodyMedium)
-                            .foregroundColor(isDisabled ? Color.Text.secondary : Color.Text.primary)
+                        DSText(label, style: .bodyMedium, color: isDisabled ? Color.Text.secondary : Color.Text.primary)
                     }
 
                     Spacer()
 
                     if showValue {
-                        Text(formattedValue)
-                            .fontStyle(.bodyMedium)
-                            .foregroundColor(isDisabled ? Color.Text.secondary : Color.Text.brand)
+                        DSText(formattedValue, style: .bodyMedium, color: isDisabled ? Color.Text.secondary : Color.Text.brand)
                     }
                 }
             }
@@ -74,9 +70,7 @@ public struct DSSlider: View {
             // Slider
             HStack(spacing: .sm) {
                 if showMinMax {
-                    Text(formattedMinValue)
-                        .fontStyle(.caption)
-                        .foregroundColor(Color.Text.secondary)
+                    DSText(formattedMinValue, style: .caption, color: Color.Text.secondary)
                         .frame(minWidth: 30, alignment: .trailing)
                 }
 
@@ -92,9 +86,7 @@ public struct DSSlider: View {
                 }
 
                 if showMinMax {
-                    Text(formattedMaxValue)
-                        .fontStyle(.caption)
-                        .foregroundColor(Color.Text.secondary)
+                    DSText(formattedMaxValue, style: .caption, color: Color.Text.secondary)
                         .frame(minWidth: 30, alignment: .leading)
                 }
             }

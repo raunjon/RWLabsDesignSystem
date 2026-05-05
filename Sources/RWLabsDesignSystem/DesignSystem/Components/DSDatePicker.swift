@@ -55,9 +55,7 @@ public struct DSDatePicker: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: .xs) {
             if let label = label {
-                Text(label)
-                    .fontStyle(.bodyMedium)
-                    .foregroundColor(isDisabled ? Color.Text.tertiary : Color.Text.primary)
+                DSText(label, style: .bodyMedium, color: isDisabled ? Color.Text.tertiary : Color.Text.primary)
             }
 
             DatePicker(

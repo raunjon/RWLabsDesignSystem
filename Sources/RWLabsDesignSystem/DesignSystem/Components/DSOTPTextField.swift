@@ -115,9 +115,7 @@ public struct DSOTPTextField: View {
         VStack(alignment: .leading, spacing: .xs) {
             // Label
             if let label = label {
-                Text(label)
-                    .fontStyle(.bodySmall)
-                    .foregroundColor(Color.Text.secondary)
+                DSText(label, style: .bodySmall, color: .Text.secondary)
             }
 
             // OTP Input Fields
@@ -169,14 +167,10 @@ public struct DSOTPTextField: View {
                     Image(systemName: "exclamationmark.circle.fill")
                         .foregroundColor(Color.Semantic.error)
                         .font(.system(size: 12))
-                    Text(errorMessage)
-                        .fontStyle(.caption)
-                        .foregroundColor(Color.Semantic.error)
+                    DSText(errorMessage, style: .caption, color: .Semantic.error)
                 }
             } else if let helperText = helperText {
-                Text(helperText)
-                    .fontStyle(.caption)
-                    .foregroundColor(Color.Text.tertiary)
+                DSText(helperText, style: .caption, color: .Text.tertiary)
             }
         }
     }
@@ -205,14 +199,10 @@ private struct OTPSingleField: View {
 
             // Cursor or Character
             if isFocused && character.isEmpty {
-                Text("|")
-                    .fontStyle(.body)
-                    .foregroundColor(Color.Text.primary)
+                DSText("|", style: .body, color: .Text.primary)
                     .opacity(0.7)
             } else {
-                Text(character)
-                    .fontStyle(.body)
-                    .foregroundColor(character.isEmpty ? Color.Text.placeholder : Color.Text.primary)
+                DSText(character, style: .body, color: character.isEmpty ? .Text.placeholder : .Text.primary)
             }
         }
         .frame(width: fieldSize, height: fieldSize)
@@ -225,9 +215,7 @@ struct DSOTPTextField_Previews: PreviewProvider {
         VStack(spacing: .lg) {
             // Default state
             VStack(alignment: .leading, spacing: .md) {
-                Text("Default")
-                    .fontStyle(.bodySmall)
-                    .foregroundColor(Color.Text.secondary)
+                DSText("Default", style: .bodySmall, color: .Text.secondary)
 
                 DSOTPTextField(
                     code: .constant("1"),
@@ -239,9 +227,7 @@ struct DSOTPTextField_Previews: PreviewProvider {
 
             // With error
             VStack(alignment: .leading, spacing: .md) {
-                Text("With Error")
-                    .fontStyle(.bodySmall)
-                    .foregroundColor(Color.Text.secondary)
+                DSText("With Error", style: .bodySmall, color: .Text.secondary)
 
                 DSOTPTextField(
                     code: .constant("123"),
@@ -253,9 +239,7 @@ struct DSOTPTextField_Previews: PreviewProvider {
 
             // Filled
             VStack(alignment: .leading, spacing: .md) {
-                Text("Complete")
-                    .fontStyle(.bodySmall)
-                    .foregroundColor(Color.Text.secondary)
+                DSText("Complete", style: .bodySmall, color: .Text.secondary)
 
                 DSOTPTextField(
                     code: .constant("1234"),
@@ -266,9 +250,7 @@ struct DSOTPTextField_Previews: PreviewProvider {
 
             // Disabled
             VStack(alignment: .leading, spacing: .md) {
-                Text("Disabled")
-                    .fontStyle(.bodySmall)
-                    .foregroundColor(Color.Text.secondary)
+                DSText("Disabled", style: .bodySmall, color: .Text.secondary)
 
                 DSOTPTextField(
                     code: .constant("1234"),

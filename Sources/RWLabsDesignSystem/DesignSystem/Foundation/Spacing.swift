@@ -138,10 +138,10 @@ public struct DSShadow {
         let x: CGFloat
         let y: CGFloat
         
-        @MainActor static let sm:   Self = DSShadow.sm
-        @MainActor static let md:   Self = DSShadow.md
-        @MainActor static let lg:   Self = DSShadow.lg
-        @MainActor static let none: Self = DSShadow.none
+        @MainActor public static let sm:   Self = DSShadow.sm
+        @MainActor public static let md:   Self = DSShadow.md
+        @MainActor public static let lg:   Self = DSShadow.lg
+        @MainActor public static let none: Self = DSShadow.none
     }
 
     /// Small elevation shadow

@@ -37,9 +37,7 @@ public struct DSCheckboxGroup<T: Hashable & CustomStringConvertible>: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: .sm) {
             if let label = label {
-                Text(label)
-                    .fontStyle(.bodyMedium)
-                    .foregroundColor(isDisabled ? Color.Text.tertiary : Color.Text.primary)
+                DSText(label, style: .bodyMedium, color: isDisabled ? Color.Text.tertiary : Color.Text.primary)
             }
 
             VStack(alignment: .leading, spacing: .xs) {
@@ -76,14 +74,11 @@ public struct DSCheckboxGroup<T: Hashable & CustomStringConvertible>: View {
                             .frame(width: 20, height: 20)
 
                         Image(systemName: "checkmark")
-                            .fontStyle(.captionSemi)
                             .foregroundColor(Color.Icon.primary)
                     }
                 }
 
-                Text(option.description)
-                    .fontStyle(.body)
-                    .foregroundColor(Color.Text.primary)
+                DSText(option.description, style: .body, color: Color.Text.primary)
 
                 Spacer()
             }

@@ -133,9 +133,7 @@ public struct DSInputModalView: View {
             VStack(spacing: .sm) {
                 // Title
                 if let title = title {
-                    Text(title)
-                        .fontStyle(.title2)
-                        .foregroundStyle(Color.Text.primary)
+                    DSText(title, style: .title2, color: Color.Text.primary)
                         .multilineTextAlignment(.center)
                         .padding(.top, .md)
                         .padding(.horizontal, .lg)
@@ -143,8 +141,7 @@ public struct DSInputModalView: View {
 
                 // Subtitle
                 if let subtitle = subtitle {
-                    Text(subtitle)
-                        .typography(.bodyMedium, color: Color.Text.secondary)
+                    DSText(subtitle, style: .bodyMedium, color: Color.Text.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.top, .xxs)
                         .padding(.horizontal, .lg)

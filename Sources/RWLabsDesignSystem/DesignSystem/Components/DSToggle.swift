@@ -37,15 +37,11 @@ public struct DSToggle: View {
             if label != nil || description != nil {
                 VStack(alignment: .leading, spacing: .xxs) {
                     if let label = label {
-                        Text(label)
-                            .fontStyle(.body)
-                            .foregroundColor(isDisabled ? Color.Text.tertiary : Color.Text.primary)
+                        DSText(label, style: .body, color: isDisabled ? .Text.tertiary : .Text.primary)
                     }
 
                     if let description = description {
-                        Text(description)
-                            .fontStyle(.bodySmall)
-                            .foregroundColor(Color.Text.secondary)
+                        DSText(description, style: .bodySmall, color: .Text.secondary)
                     }
                 }
 
@@ -181,8 +177,7 @@ public struct DSToggleGroup: View {
 
         var body: some View {
             VStack(spacing: .xl) {
-                Text("Notification Settings")
-                    .fontStyle(.headline)
+                DSText("Notification Settings", style: .headline, color: .Text.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 DSToggleGroup(toggles: [
@@ -203,8 +198,7 @@ public struct DSToggleGroup: View {
                     )
                 ])
 
-                Text("Sound & Haptics")
-                    .fontStyle(.headline)
+                DSText("Sound & Haptics", style: .headline, color: .Text.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 DSToggleGroup(toggles: [
@@ -240,9 +234,7 @@ public struct DSToggleGroup: View {
                 VStack(spacing: .xl) {
                     // Connectivity
                     VStack(alignment: .leading, spacing: .sm) {
-                        Text("Connectivity")
-                            .fontStyle(.caption)
-                            .foregroundColor(Color.Text.secondary)
+                        DSText("Connectivity", style: .caption, color: .Text.secondary)
                             .padding(.horizontal, .sm)
 
                         DSToggleGroup(toggles: [

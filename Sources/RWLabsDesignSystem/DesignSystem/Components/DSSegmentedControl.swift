@@ -71,10 +71,8 @@ public struct DSSegmentedControl<T: Hashable>: View {
                         .font(.system(size: 14))
                 }
 
-                Text(option.label)
-                    .fontStyle(.bodyMedium)
+                DSText(option.label, style: .bodyMedium, color: isSelected ? Color.Text.primary : Color.Text.secondary)
             }
-            .foregroundColor(isSelected ? Color.Text.primary : Color.Text.secondary)
             .padding(.horizontal, .md)
             .padding(.vertical, .sm)
             .frame(maxWidth: .infinity)

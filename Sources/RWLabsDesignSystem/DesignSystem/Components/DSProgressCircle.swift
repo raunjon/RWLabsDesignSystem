@@ -64,9 +64,7 @@ public struct DSProgressCircle: View {
 
                 // Percentage text
                 if showPercentage {
-                    Text("\(Int(value * 100))%")
-                        .fontStyle(.bodyMedium)
-                        .foregroundColor(Color.Text.primary)
+                    DSText("\(Int(value * 100))%", style: .bodyMedium, color: .Text.primary)
                 }
             } else {
                 // Indeterminate spinner

@@ -48,15 +48,11 @@ public struct DSEmptyState: View {
 
             // Content
             VStack(spacing: .sm) {
-                Text(title)
-                    .fontStyle(.title3)
-                    .foregroundColor(Color.Text.primary)
+                DSText(title, style: .title3, color: Color.Text.primary)
                     .multilineTextAlignment(.center)
 
                 if let description = description {
-                    Text(description)
-                        .fontStyle(.body)
-                        .foregroundColor(Color.Text.secondary)
+                    DSText(description, style: .body, color: Color.Text.secondary)
                         .multilineTextAlignment(.center)
                 }
             }

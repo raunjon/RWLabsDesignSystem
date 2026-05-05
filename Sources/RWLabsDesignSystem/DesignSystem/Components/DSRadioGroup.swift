@@ -37,9 +37,7 @@ public struct DSRadioGroup<T: Hashable & CustomStringConvertible>: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: .sm) {
             if let label = label {
-                Text(label)
-                    .fontStyle(.bodyMedium)
-                    .foregroundColor(isDisabled ? Color.Text.tertiary : Color.Text.primary)
+                DSText(label, style: .bodyMedium, color: isDisabled ? Color.Text.tertiary : Color.Text.primary)
             }
 
             VStack(alignment: .leading, spacing: .xs) {
@@ -73,9 +71,7 @@ public struct DSRadioGroup<T: Hashable & CustomStringConvertible>: View {
                     }
                 }
 
-                Text(option.description)
-                    .fontStyle(.body)
-                    .foregroundColor(Color.Text.primary)
+                DSText(option.description, style: .body, color: Color.Text.primary)
 
                 Spacer()
             }

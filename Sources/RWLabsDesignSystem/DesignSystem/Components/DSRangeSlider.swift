@@ -53,17 +53,13 @@ public struct DSRangeSlider: View {
         VStack(alignment: .leading, spacing: .sm) {
             // Label
             if let label = label {
-                Text(label)
-                    .fontStyle(.bodyMedium)
-                    .foregroundColor(isDisabled ? Color.Text.tertiary : Color.Text.primary)
+                DSText(label, style: .bodyMedium, color: isDisabled ? .Text.tertiary : .Text.primary)
             }
 
             // Range display
             if showValues {
                 HStack {
-                    Text("\(formattedValue(lowerValue)) - \(formattedValue(upperValue))")
-                        .fontStyle(.bodyMedium)
-                        .foregroundColor(isDisabled ? Color.Text.tertiary : Color.Text.brand)
+                    DSText("\(formattedValue(lowerValue)) - \(formattedValue(upperValue))", style: .bodyMedium, color: isDisabled ? .Text.tertiary : .Text.brand)
                 }
             }
 

@@ -58,9 +58,7 @@ public struct DSBadge: View {
                     .fill(badgeColor)
                     .frame(width: 8, height: 8)
             } else if let value = value, value > 0 {
-                Text(displayValue)
-                    .fontStyle(.caption2)
-                    .foregroundColor(.Text.inverse)
+                DSText(displayValue, style: .caption2, color: .Text.inverse)
                     .padding(.horizontal, value > 9 ? 4 : 0)
                     .frame(minWidth: 16, minHeight: 16)
                     .background(badgeColor)

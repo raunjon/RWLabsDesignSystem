@@ -115,9 +115,7 @@ private struct TabBarButton: View {
 
                     // Badge
                     if let badge = item.badge, badge > 0 {
-                        Text(badge > 99 ? "99+" : "\(badge)")
-                            .fontStyle(.caption3Semi)
-                            .foregroundColor(Color.Background.primary)
+                        DSText(badge > 99 ? "99+" : "\(badge)", style: .caption3Semi, color: Color.Background.primary)
                             .padding(.horizontal, 4)
                             .padding(.vertical, 2)
                             .background(Color.Icon.brandSecondary)
@@ -128,9 +126,7 @@ private struct TabBarButton: View {
 
                 // Title
                 if style.showTitle {
-                    Text(item.title)
-                        .fontStyle(isSelected ? .caption3Semi : .caption3)
-                        .foregroundColor(isSelected ? .Icon.brand : .Icon.secondary)
+                    DSText(item.title, style: isSelected ? .caption3Semi : .caption3, color: isSelected ? .Icon.brand : .Icon.secondary)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -306,9 +302,7 @@ private struct ContentPlaceholder: View {
                 .font(.system(size: 64))
                 .foregroundColor(Color.Icon.brand)
 
-            Text(title)
-                .fontStyle(.title)
-                .foregroundColor(Color.Text.primary)
+            DSText(title, style: .title, color: Color.Text.primary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.Background.secondary)

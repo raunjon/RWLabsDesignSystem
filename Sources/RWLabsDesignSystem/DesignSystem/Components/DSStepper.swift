@@ -46,9 +46,7 @@ public struct DSStepper: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: .sm) {
             if let label = label {
-                Text(label)
-                    .fontStyle(.bodyMedium)
-                    .foregroundColor(isDisabled ? Color.Text.tertiary : Color.Text.primary)
+                DSText(label, style: .bodyMedium, color: isDisabled ? Color.Text.tertiary : Color.Text.primary)
             }
 
             HStack(spacing: .sm) {
@@ -77,9 +75,7 @@ public struct DSStepper: View {
                         .border(Color.Border.default, lineWidth: .thin, cornerRadius: .radiusMD)
                         .disabled(isDisabled)
                 } else {
-                    Text(formattedValue)
-                        .fontStyle(.bodyMedium)
-                        .foregroundColor(Color.Text.primary)
+                    DSText(formattedValue, style: .bodyMedium, color: Color.Text.primary)
                         .frame(minWidth: 60)
                 }
 

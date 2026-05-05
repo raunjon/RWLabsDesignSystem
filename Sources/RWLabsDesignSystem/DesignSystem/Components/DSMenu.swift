@@ -204,9 +204,7 @@ public extension View {
                     DSButton(title: "Actions", variant: .outline) {}
                 }
 
-                Text("Selected: \(sortOrder)")
-                    .fontStyle(.caption)
-                    .foregroundColor(Color.Text.secondary)
+                DSText("Selected: \(sortOrder)", style: .caption, color: .Text.secondary)
 
                 Spacer()
             }
@@ -259,11 +257,8 @@ public extension View {
             VStack(spacing: .xl) {
                 DSCard(elevation: .medium) {
                     VStack(alignment: .leading, spacing: .sm) {
-                        Text("Long Press Me")
-                            .fontStyle(.headline)
-                        Text("Or right-click on macOS")
-                            .fontStyle(.bodySmall)
-                            .foregroundColor(Color.Text.secondary)
+                        DSText("Long Press Me", style: .headline, color: .Text.primary)
+                        DSText("Or right-click on macOS", style: .bodySmall, color: .Text.secondary)
                     }
                 }
                 .dsContextMenu(items: [
@@ -286,9 +281,7 @@ public extension View {
                     )
                 ])
 
-                Text("Long press or right-click the card above")
-                    .fontStyle(.caption)
-                    .foregroundColor(Color.Text.secondary)
+                DSText("Long press or right-click the card above", style: .caption, color: .Text.secondary)
 
                 Spacer()
             }
