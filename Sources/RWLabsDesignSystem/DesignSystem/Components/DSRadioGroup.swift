@@ -53,32 +53,20 @@ public struct DSRadioGroup<T: Hashable & CustomStringConvertible>: View {
 
     @ViewBuilder
     private func radioButton(for option: T) -> some View {
-        Button(action: {
-            if !isDisabled {
-                selection = option
-            }
-        }) {
-            HStack(spacing: .sm) {
-                ZStack {
-                    Circle()
-                        .stroke(selection == option ? Color.Border.active : Color.Border.default, lineWidth: 2)
-                        .frame(width: 20, height: 20)
+        HStack(spacing: .sm) {
+            DSRadio(
+                isSelected: Binding(
+                    get: { selection == option },
+                    set: { if $0 { selection = option } }
+                ),
+                isEnabled: !isDisabled
+            )
 
-                    if selection == option {
-                        Circle()
-                            .fill(Color.Border.active)
-                            .frame(width: 10, height: 10)
-                    }
-                }
+            DSText(option.description, style: .body, color: Color.Text.primary)
 
-                DSText(option.description, style: .body, color: Color.Text.primary)
-
-                Spacer()
-            }
-            .padding(.vertical, .xs)
+            Spacer()
         }
-        .buttonStyle(PlainButtonStyle())
-        .disabled(isDisabled)
+        .padding(.vertical, .xs)
     }
 }
 

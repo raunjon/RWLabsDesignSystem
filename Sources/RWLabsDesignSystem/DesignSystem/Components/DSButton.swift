@@ -12,7 +12,7 @@ public enum DSButtonVariant {
     case primary      // Enabled state
     case secondary    // Pressed state
     case outline      // Outline/Tertiary state
-    case disabled     // Disabled state
+    //case disabled     // Disabled state
     case ghost
     case destructive
     case link
@@ -25,8 +25,6 @@ public enum DSButtonVariant {
             return .Button.primary
         case .secondary:
             return .Button.secondary
-        case .disabled:
-            return.Button.disabled
         case .outline:
             return .Button.outline
         case .ghost, .link, .brandLink:
@@ -43,8 +41,6 @@ public enum DSButtonVariant {
             return .Button.primaryText
         case .secondary:
             return .Button.secondaryText
-        case .disabled:
-            return .Button.disabledText
         case .outline:
             return .Button.outlineText
         case .destructive:
@@ -92,7 +88,7 @@ public enum DSButtonSize {
     }
 
     var cornerRadius: CGFloat {
-        .xl
+        .radiusXL
     }
 }
 

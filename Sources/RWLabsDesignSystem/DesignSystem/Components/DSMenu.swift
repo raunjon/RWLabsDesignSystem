@@ -130,7 +130,7 @@ public struct DSMenu<Label: View>: View {
 
 public extension View {
     func dsContextMenu(items: [DSMenu<AnyView>.MenuItem]) -> some View {
-        self.contextMenu {
+        self.contextMenu { 
             ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                 if item.isDivider {
                     Divider()

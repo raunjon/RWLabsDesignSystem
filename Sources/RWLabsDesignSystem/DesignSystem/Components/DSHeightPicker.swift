@@ -28,9 +28,9 @@ public struct DSHeightPickerView: View {
         VStack(alignment: .leading, spacing: .sm) {
             // Label and Unit Toggle
             VStack {
-                DSHeightUnitToggle(unit: $unit)
+                DSHeightUnitToggle(unit: $unit, isDisabled: isDisabled)
                     .disabled(isDisabled)
-                DSHeightPicker(unit: unit, selectedHeight: $selectedHeight, selectedMetricHeight: $selectedMetricHeight, isDisabled: isDisabled)
+                DSHeightPicker(unit: $unit, selectedHeight: $selectedHeight, selectedMetricHeight: $selectedMetricHeight, isDisabled: isDisabled)
             }
         }
     }
@@ -41,12 +41,12 @@ public struct DSHeightPickerView: View {
 public struct DSHeightPicker: View {
     @Binding public var selectedHeight: Int
     @Binding public var selectedMetricHeight: (Int, Int)
-    @State public var unit: DSHeightUnit
+    @Binding public var unit: DSHeightUnit
     @State public var label: String?
     @State public var isDisabled: Bool
     
     public init(
-        unit: DSHeightUnit = .cm,
+        unit: Binding<DSHeightUnit>,
         selectedHeight: Binding<Int>,
         selectedMetricHeight: Binding<(Int, Int)> = .constant((5,11)),
         label: String? = nil,
@@ -54,10 +54,11 @@ public struct DSHeightPicker: View {
     ) {
         self._selectedHeight = selectedHeight
         self._selectedMetricHeight = selectedMetricHeight
-        self.unit = unit
+        self._unit = unit
         self.label = label
         self.isDisabled = isDisabled
     }
+    
     public var body: some View {
         DSCard {
             ZStack {
@@ -75,9 +76,10 @@ public struct DSHeightPicker: View {
                     .disabled(isDisabled)
                     .id("cm")
                     .transition(.asymmetric(
-                        insertion: .move(edge: .trailing).combined(with: .opacity),
+                        insertion: .move(edge: .leading).combined(with: .opacity),
                         removal: .move(edge: .leading).combined(with: .opacity)
                     ))
+                    
 
                 case .inches:
                     Picker("Height", selection: $selectedHeight) {
@@ -92,10 +94,10 @@ public struct DSHeightPicker: View {
                     .id("inches")
                     .transition(.asymmetric(
                         insertion: .move(edge: .leading).combined(with: .opacity),
-                        removal: .move(edge: .trailing).combined(with: .opacity)
+                        removal: .move(edge: .leading).combined(with: .opacity)
                     ))
 
-                case .feet:
+                case .metric:
                     HStack {
                         Picker("Feet", selection: $selectedMetricHeight.0) {
                             ForEach(feetOptions, id: \.self) { height in
@@ -119,7 +121,7 @@ public struct DSHeightPicker: View {
                     .id("feet")
                     .transition(.asymmetric(
                         insertion: .move(edge: .trailing).combined(with: .opacity),
-                        removal: .move(edge: .leading).combined(with: .opacity)
+                        removal: .move(edge: .trailing).combined(with: .opacity)
                     ))
                 }
             }
@@ -166,7 +168,7 @@ public struct DSHeightPicker: View {
         case .inches:
             let inches = height
             return "\(height)\""
-        case .feet:
+        case .metric:
             let totalInches = height
             let feet = Int(totalInches / 12)
             let inches = 0//Int(totalInches.truncatingRemainder(dividingBy: 12))
@@ -180,7 +182,7 @@ public struct DSHeightPicker: View {
 public enum DSHeightUnit: String, CaseIterable {
     case cm = "cm"
     case inches = "in"
-    case feet = "ft"
+    case metric = "ft"
 
     var displayName: String {
         switch self {
@@ -188,7 +190,7 @@ public enum DSHeightUnit: String, CaseIterable {
             return "Centimeters"
         case .inches:
             return "Inches"
-        case .feet:
+        case .metric:
             return "Feet"
         }
     }
@@ -199,7 +201,7 @@ public enum DSHeightUnit: String, CaseIterable {
             return "cm"
         case .inches:
             return "in"
-        case .feet:
+        case .metric:
             return "ft"
         }
     }
@@ -207,18 +209,25 @@ public enum DSHeightUnit: String, CaseIterable {
 
 // MARK: - Height Unit Toggle
 
-struct DSHeightUnitToggle: View {
-    @Binding var unit: DSHeightUnit
-    @State var isDisabled: Bool = false
-    @State var label: String?
+public struct DSHeightUnitToggle: View {
+    @Binding public var unit: DSHeightUnit
+    @State public var isDisabled: Bool = false
+    @State public var label: String?
     @Namespace private var namespace
-    var body: some View {
+    
+    public init(unit: Binding<DSHeightUnit>, isDisabled: Bool = false, label: String? = nil) {
+        self._unit = unit
+        self.isDisabled = isDisabled
+        self.label = label
+    }
+    
+    public var body: some View {
         VStack {
             if let label {
                 DSText(label, style: .bodyMedium, color: isDisabled ? .Text.tertiary : .Text.primary)
             }
             HStack(spacing: .xxs) {
-                ForEach([DSHeightUnit.feet, DSHeightUnit.cm], id: \.self) { option in
+                ForEach([DSHeightUnit.metric, DSHeightUnit.cm], id: \.self) { option in
                     ZStack {
                         if unit == option {
                             RoundedRectangle(cornerRadius: .radiusLG)
@@ -258,16 +267,17 @@ struct DSHeightUnitToggle: View {
     struct PreviewWrapper: View {
         @State private var selectedHeight: Int = 170
         @State private var selectedMetricHeight: (Int,Int) = (5,11)
+        @State private var unit: DSHeightUnit = .cm
 
         var body: some View {
             ZStack {
                 Color.Background.primary.ignoresSafeArea()
 
                 VStack(spacing: .xl) {
-                    DSHeightPickerView(
-                        selectedHeight: $selectedHeight,
+                    DSHeightUnitToggle(unit: $unit)
+                    DSHeightPicker(
+                        unit: $unit, selectedHeight: $selectedHeight,
                         selectedMetricHeight: $selectedMetricHeight,
-                        unit: .cm,
                         label: "Select Height",
                         isDisabled: false
                     )
@@ -275,6 +285,8 @@ struct DSHeightUnitToggle: View {
                     VStack(spacing: .sm) {
                         DSText("Selected Height:", style: .bodySmall, color: .Text.secondary)
                         DSText(String(format: "%d cm", selectedHeight), style: .title3, color: .Text.primary)
+                        DSText(String(format: "%d cm", selectedMetricHeight.1), style: .title3, color: .Text.primary)
+                        DSText(unit.shortName, style: .title3, color: .Text.primary)
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
 
@@ -295,7 +307,7 @@ struct DSHeightUnitToggle: View {
 
         VStack(spacing: .xl) {
             DSHeightPicker(
-                unit: .cm, selectedHeight: .constant(170),
+                unit: .constant(.metric), selectedHeight: .constant(170),
                 selectedMetricHeight: .constant((5,11)),
                 label: "Select Height",
                 isDisabled: true
@@ -319,7 +331,7 @@ struct DSHeightUnitToggle: View {
 
                 VStack(spacing: .xl) {
                     DSHeightPicker(
-                        unit: .inches,
+                        unit: .constant(.inches),
                         selectedHeight: $selectedHeight,
                         selectedMetricHeight: $selectedMetricHeight,
                         label: "Select Height",

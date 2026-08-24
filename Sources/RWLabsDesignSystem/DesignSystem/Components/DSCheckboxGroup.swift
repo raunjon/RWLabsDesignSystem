@@ -53,39 +53,26 @@ public struct DSCheckboxGroup<T: Hashable & CustomStringConvertible>: View {
 
     @ViewBuilder
     private func checkboxButton(for option: T) -> some View {
-        Button(action: {
-            if !isDisabled {
-                if selection.contains(option) {
-                    selection.remove(option)
-                } else {
-                    selection.insert(option)
-                }
-            }
-        }) {
-            HStack(spacing: .sm) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 4)
-                        .border(selection.contains(option) ? Color.Background.brand : Color.Border.default, lineWidth: 1)
-                        .frame(width: 20, height: 20)
-
-                    if selection.contains(option) {
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(Color.Background.brand)
-                            .frame(width: 20, height: 20)
-
-                        Image(systemName: "checkmark")
-                            .foregroundColor(Color.Icon.primary)
+        HStack(spacing: .sm) {
+            DSCheckbox(
+                isChecked: Binding(
+                    get: { selection.contains(option) },
+                    set: { isChecked in
+                        if isChecked {
+                            selection.insert(option)
+                        } else {
+                            selection.remove(option)
+                        }
                     }
-                }
+                ),
+                isEnabled: !isDisabled
+            )
 
-                DSText(option.description, style: .body, color: Color.Text.primary)
+            DSText(option.description, style: .body, color: Color.Text.primary)
 
-                Spacer()
-            }
-            .padding(.vertical, .xs)
+            Spacer()
         }
-        .buttonStyle(PlainButtonStyle())
-        .disabled(isDisabled)
+        .padding(.vertical, .xs)
     }
 }
 

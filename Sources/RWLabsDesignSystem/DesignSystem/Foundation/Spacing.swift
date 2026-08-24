@@ -316,32 +316,53 @@ public extension View {
 public extension CGFloat {
 
     // MARK: - Spacing
+    /// 4px
     static let xxs = DSSpacing.xxs
+    /// 8px
     static let xs  = DSSpacing.xs
+    /// 12px
     static let sm  = DSSpacing.sm
+    /// 16px
     static let md  = DSSpacing.md
+    /// 23px
     static let lg  = DSSpacing.lg
+    /// 32px
     static let xl  = DSSpacing.xl
+    /// 48px
     static let xxl = DSSpacing.xxl
+    /// 64px
     static let xxxl = DSSpacing.xxxl
 
     // MARK: - Radius
+    /// 0px
     static let radiusNone = DSRadius.none
+    /// 4px
     static let radiusSM   = DSRadius.sm
+    /// 8px
     static let radiusMD   = DSRadius.md
+    /// 12px
     static let radiusLG   = DSRadius.lg
+    /// 16px
     static let radiusXL   = DSRadius.xl
+    /// 999
     static let radiusFull = DSRadius.full
 
     // MARK: - Border Width
+    /// 1px
     static let borderThin   = DSBorderWidth.thin
+    /// 2px
     static let borderMedium = DSBorderWidth.medium
+    /// 3px
     static let borderThick  = DSBorderWidth.thick
 
     // MARK: - Layout
+    /// 16px
     static let screenMargin = DSSpacing.Layout.screenMargin
+    /// 24px
     static let sectionSpacing = DSSpacing.Layout.sectionSpacing
+    /// 16px
     static let itemSpacing = DSSpacing.Layout.itemSpacing
+    /// 44px
     static let minTouchTarget = DSSpacing.Layout.minTouchTarget
 }
 

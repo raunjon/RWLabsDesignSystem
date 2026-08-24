@@ -452,7 +452,7 @@ extension DSBackgroundColorPalette {
     }
     
     public var secondary: Color {
-        Color(light: palette.gray300, dark: palette.gray500)
+        Color(light: palette.gray200, dark: palette.gray400)
     }
     
     public var tertiary: Color {
@@ -460,7 +460,7 @@ extension DSBackgroundColorPalette {
     }
     
     public var secondaryInverse: Color {
-        Color(light: palette.gray500, dark: palette.gray300)
+        Color(light: palette.gray400, dark: palette.gray200)
     }
     
     public var tertiaryInverse: Color {

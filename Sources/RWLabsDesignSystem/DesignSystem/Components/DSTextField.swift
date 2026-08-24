@@ -54,7 +54,25 @@ public struct DSTextField: View {
     let keyboardType: UIKeyboardType
     let textContentType: UITextContentType?
     let autocapitalization: UITextAutocapitalizationType
+    let trailingIcon: AnyView?
 
+    init(
+        _ text: Binding<String>,
+        label: String? = nil,
+        placeholder: String = "",
+        helperText: String? = nil,
+        errorMessage: String? = nil,
+        isDisabled: Bool = false,
+        isSecure: Bool = false,
+        icon: Image? = nil,
+        keyboardType: UIKeyboardType = .default,
+        textContentType: UITextContentType? = nil,
+        autocapitalization: UITextAutocapitalizationType = .sentences,
+        trailingIcon: AnyView? = nil
+    ) {
+        self.init(text:text, label: label, placeholder: placeholder, helperText: helperText, errorMessage: errorMessage, isDisabled: isDisabled, isSecure: isSecure, icon: icon, keyboardType: keyboardType, textContentType: textContentType, autocapitalization: autocapitalization, trailingIcon: trailingIcon)
+    }
+    
     public init(
         text: Binding<String>,
         label: String? = nil,
@@ -66,7 +84,8 @@ public struct DSTextField: View {
         icon: Image? = nil,
         keyboardType: UIKeyboardType = .default,
         textContentType: UITextContentType? = nil,
-        autocapitalization: UITextAutocapitalizationType = .sentences
+        autocapitalization: UITextAutocapitalizationType = .sentences,
+        trailingIcon: AnyView? = nil
     ) {
         self._text = text
         self.label = label
@@ -79,6 +98,7 @@ public struct DSTextField: View {
         self.keyboardType = keyboardType
         self.textContentType = textContentType
         self.autocapitalization = autocapitalization
+        self.trailingIcon = trailingIcon
     }
 
     private var currentState: DSTextFieldState {
@@ -124,6 +144,14 @@ public struct DSTextField: View {
                         .keyboardType(keyboardType)
                         .textContentType(textContentType)
                         .textInputAutocapitalization(autocapitalization == .none ? .never : (autocapitalization == .words ? .words : (autocapitalization == .sentences ? .sentences : .characters)))
+                }
+                
+                if let icon = trailingIcon {
+                    icon
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
+                        .foregroundColor(Color.Text.secondary)
+                        .animation(.easeIn, value: text)
                 }
             }
             .padding(.input)
@@ -282,22 +310,5 @@ struct DSTextField_Previews: PreviewProvider {
             )
         }
         .padding()
-    }
-}
-
-public struct DSText: View {
-    @State public var text: String
-    public var style: DSTypography.Style = .body
-    public var color: Color = .Text.primary
-    
-    public init(_ text: String, style: DSTypography.Style = .body, color: Color = .Text.primary) {
-        self.text = text
-        self.style = style
-        self.color = color
-    }
-    
-    public var body: some View {
-        Text(text)
-            .typography(style, color: color)
     }
 }

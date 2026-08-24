@@ -231,7 +231,7 @@ public struct DSChatBubble: View {
             .overlay(
                 Image(systemName: "person.fill")
                     .fontStyle(.bodyMedium)
-                    .foregroundColor(Color.Icon.placeholder)
+                    .foregroundColor(Color.Background.secondaryInverse)
             )
     }
 }
@@ -552,4 +552,5 @@ public struct DSChatMediaBubble: View {
     }
     .padding()
     .background(Color.Background.primary)
+    .preferredColorScheme(.light)
 }
