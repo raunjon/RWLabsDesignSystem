@@ -56,7 +56,7 @@ public struct DSAvatar: View {
             .clipShape(Circle())
             .overlay(
                 Circle()
-                    .stroke(Color.Border.default, lineWidth: 1)
+                    .stroke(Color.Border.subtle, lineWidth: 1)
             )
 
             // Status indicator
@@ -187,7 +187,7 @@ public struct DSAvatarGroup: View {
                 .frame(width: size.diameter, height: size.diameter)
                 .overlay(
                     Circle()
-                        .stroke(Color.Border.default, lineWidth: 1)
+                        .stroke(Color.Border.subtle, lineWidth: 1)
                 )
             }
         }
@@ -227,7 +227,7 @@ public extension String {
             DSAvatar(initials: "JD", size: .xlarge)
         }
 
-        DSText("Sizes: Small, Medium, Large, XLarge", style: .caption, color: .Text.secondary)
+        DSText("Sizes: Small, Medium, Large, XLarge", style: .label, color: .Text.secondary)
     }
     .padding()
 }
@@ -237,22 +237,22 @@ public extension String {
         HStack(spacing: .lg) {
             VStack {
                 DSAvatar(initials: "JD", size: .large, status: .online)
-                DSText("Online", style: .caption, color: .Text.primary)
+                DSText("Online", style: .label, color: .Text.primary)
             }
 
             VStack {
                 DSAvatar(initials: "SM", size: .large, status: .offline)
-                DSText("Offline", style: .caption, color: .Text.primary)
+                DSText("Offline", style: .label, color: .Text.primary)
             }
 
             VStack {
                 DSAvatar(initials: "KL", size: .large, status: .away)
-                DSText("Away", style: .caption, color: .Text.primary)
+                DSText("Away", style: .label, color: .Text.primary)
             }
 
             VStack {
                 DSAvatar(initials: "RM", size: .large, status: .busy)
-                DSText("Busy", style: .caption, color: .Text.primary)
+                DSText("Busy", style: .label, color: .Text.primary)
             }
         }
     }
@@ -273,7 +273,7 @@ public extension String {
             maxVisible: 3
         )
 
-        DSText("5 members", style: .caption, color: .Text.secondary)
+        DSText("5 members", style: .label, color: .Text.secondary)
     }
     .padding()
 }
@@ -284,7 +284,7 @@ public extension String {
         DSAvatar(initials: "Sarah Miller".avatarInitials, size: .large)
         DSAvatar(initials: "Kim Lee".avatarInitials, size: .large)
 
-        DSText("Initials extracted from names", style: .caption, color: .Text.secondary)
+        DSText("Initials extracted from names", style: .label, color: .Text.secondary)
     }
     .padding()
 }

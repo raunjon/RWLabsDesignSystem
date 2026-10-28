@@ -67,7 +67,7 @@ public struct DSSliderButton: View {
                 HStack {
                     Spacer()
 
-                    DSText(title, style: .bodyMedium, color: textColor)
+                    DSText(title, style: .bodySmallMedium, color: textColor)
                         .tracking(-0.15)
 
                     Spacer()

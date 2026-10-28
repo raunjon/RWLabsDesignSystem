@@ -55,7 +55,7 @@ public struct DSListRow: View {
                     DSText(title, style: .body, color: Color.Text.primary)
 
                     if let subtitle = subtitle {
-                        DSText(subtitle, style: .bodySmall, color: Color.Text.secondary)
+                        DSText(subtitle, style: .bodySmallMedium, color: Color.Text.secondary)
                     }
                 }
 
@@ -141,7 +141,7 @@ public struct DSListSection<Content: View>: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: .xs) {
             if let title = title {
-                DSText(title.uppercased(), style: .caption, color: Color.Text.secondary)
+                DSText(title.uppercased(), style: .label, color: Color.Text.secondary)
                     .padding(.horizontal, .md)
                     .padding(.top, .sm)
             }
@@ -150,11 +150,11 @@ public struct DSListSection<Content: View>: View {
                 content()
             }
             .background(Color.Background.primary)
-            .cornerRadius(.radiusMD)
-            .border(.Border.inverse, lineWidth: 1, cornerRadius: .radiusMD)
+            .cornerRadius(.radiusSM)
+            .border(.Border.inverse, lineWidth: 1, cornerRadius: .radiusSM)
 
             if let footer = footer {
-                DSText(footer, style: .caption, color: Color.Text.tertiary)
+                DSText(footer, style: .label, color: Color.Text.tertiary)
                     .padding(.horizontal, .md)
             }
         }

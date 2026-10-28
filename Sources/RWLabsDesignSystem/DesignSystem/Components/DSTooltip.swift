@@ -60,12 +60,12 @@ public struct DSTooltip: View {
                 arrow
             }
 
-            DSText(text, style: .bodySmall, color: style.textColor)
+            DSText(text, style: .bodySmallMedium, color: style.textColor)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, .sm)
                 .padding(.vertical, .xs)
                 .background(style.backgroundColor.opacity(0.9))
-                .cornerRadius(.radiusLG)
+                .cornerRadius(.radiusMD)
 
             if position == .top {
                 arrow
@@ -171,7 +171,7 @@ public extension View {
 
                 DSButton(
                     title: showTop ? "Hide Top" : "Show Top",
-                    variant: .outline
+                    variant: .tertiary
                 ) {
                     withAnimation {
                         showTop.toggle()
@@ -228,7 +228,7 @@ public extension View {
                         }
                     }
 
-                DSText("Tap icon to toggle", style: .caption, color: .Text.secondary)
+                DSText("Tap icon to toggle", style: .label, color: .Text.secondary)
 
                 Spacer()
             }

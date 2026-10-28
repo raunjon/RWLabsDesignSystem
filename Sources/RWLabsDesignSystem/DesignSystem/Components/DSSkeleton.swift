@@ -50,9 +50,9 @@ public struct DSSkeleton: View {
             case .circle:
                 self.cornerRadius = height / 2
             case .rectangle:
-                self.cornerRadius = .radiusSM
+                self.cornerRadius = .radiusXS
             case .card:
-                self.cornerRadius = .radiusSM
+                self.cornerRadius = .radiusXS
             }
         }
     }

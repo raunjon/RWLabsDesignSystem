@@ -1,26 +1,23 @@
 //
 //  DSOptionalPicker.swift
-//  RWLDesignSystem
+//  RWLabsDesignSystem
 //
-//  Picker component with optional selection support and label/icon support
+//  Picker whose value may be empty, built on DSBasePicker (see DSPickerBase.swift).
 //
 
 import SwiftUI
 
 // MARK: - DSOptionalPicker
-
+/// May be empty: shows the placeholder, and tapping the selected option again clears it.
 public struct DSOptionalPicker<T: Hashable & CustomStringConvertible>: View {
-
-    // MARK: - Properties
-
     @Binding var selection: T?
     let options: [T]
     let label: String?
     let icon: Image?
     let placeholder: String
+    let helper: String?
+    let presentation: DSPickerPresentation
     let isDisabled: Bool
-
-    // MARK: - Initialization
 
     public init(
         selection: Binding<T?>,
@@ -28,6 +25,8 @@ public struct DSOptionalPicker<T: Hashable & CustomStringConvertible>: View {
         label: String? = nil,
         icon: Image? = nil,
         placeholder: String = "Select an option",
+        helper: String? = nil,
+        presentation: DSPickerPresentation = .inline,
         isDisabled: Bool = false
     ) {
         self._selection = selection
@@ -35,133 +34,22 @@ public struct DSOptionalPicker<T: Hashable & CustomStringConvertible>: View {
         self.label = label
         self.icon = icon
         self.placeholder = placeholder
+        self.helper = helper
+        self.presentation = presentation
         self.isDisabled = isDisabled
     }
 
-    // MARK: - Body
-
     public var body: some View {
-        VStack(alignment: .leading, spacing: .xs) {
-            if let label = label {
-                DSText(label, style: .bodyMedium, color: isDisabled ? .Text.tertiary : .Text.primary)
-            }
-
-            Menu {
-                // Clear button
-                Button(action: {
-                    if !isDisabled {
-                        selection = nil
-                    }
-                }) {
-                    if selection == nil {
-                        Label("None", systemImage: "checkmark")
-                    } else {
-                        Text("None")
-                    }
-                }
-
-                Divider()
-
-                // Options
-                ForEach(options, id: \.self) { option in
-                    Button(action: {
-                        if !isDisabled {
-                            selection = option
-                        }
-                    }) {
-                        if selection == option {
-                            Label(option.description, systemImage: "checkmark")
-                        } else {
-                            Text(option.description)
-                        }
-                    }
-                }
-            } label: {
-                HStack {
-                    if let icon = icon {
-                        icon
-                            .foregroundColor(Color.Text.tertiary)
-                    }
-
-                    DSText(selection?.description ?? placeholder, style: .body, color: selection == nil ? .Text.tertiary : .Text.primary)
-
-                    Spacer()
-
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 12))
-                        .foregroundColor(Color.Text.tertiary)
-                }
-                .padding(.horizontal, .md)
-                .padding(.vertical, .sm)
-                .background(Color.Background.secondary)
-                .cornerRadius(.radiusMD)
-                .border(Color.Border.default, lineWidth: .thin, cornerRadius: .radiusMD)
-            }
-            .disabled(isDisabled)
-            .opacity(isDisabled ? 0.5 : 1.0)
-        }
+        DSBasePicker(
+            label,
+            selection: $selection,
+            options: options,
+            placeholder: placeholder,
+            helper: helper,
+            icon: icon,
+            presentation: presentation,
+            allowsDeselection: true
+        )
+        .disabled(isDisabled)
     }
-}
-
-// MARK: - Preview
-
-#Preview("Optional Picker - Selected") {
-    VStack(spacing: .xl) {
-        DSOptionalPicker(
-            selection: .constant("Option 1"),
-            options: ["Option 1", "Option 2", "Option 3"],
-            label: "Choose Option"
-        )
-
-        DSOptionalPicker(
-            selection: .constant("United States"),
-            options: ["United States", "Canada", "Mexico"],
-            label: "Country",
-            icon: Image(systemName: "globe")
-        )
-
-        Spacer()
-    }
-    .padding()
-}
-
-#Preview("Optional Picker - Nil") {
-    VStack(spacing: .xl) {
-        DSOptionalPicker(
-            selection: .constant(nil as String?),
-            options: ["Option 1", "Option 2", "Option 3"],
-            label: "Choose Option"
-        )
-
-        DSOptionalPicker(
-            selection: .constant(nil as String?),
-            options: ["United States", "Canada", "Mexico"],
-            label: "Country",
-            icon: Image(systemName: "globe")
-        )
-
-        Spacer()
-    }
-    .padding()
-}
-
-#Preview("Optional Picker - Disabled") {
-    VStack(spacing: .xl) {
-        DSOptionalPicker(
-            selection: .constant("Option 1"),
-            options: ["Option 1", "Option 2", "Option 3"],
-            label: "Disabled Picker",
-            isDisabled: true
-        )
-
-        DSOptionalPicker(
-            selection: .constant(nil as String?),
-            options: ["United States", "Canada", "Mexico"],
-            label: "Disabled (Nil)",
-            isDisabled: true
-        )
-
-        Spacer()
-    }
-    .padding()
 }

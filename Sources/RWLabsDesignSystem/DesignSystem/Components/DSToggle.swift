@@ -41,7 +41,7 @@ public struct DSToggle: View {
                     }
 
                     if let description = description {
-                        DSText(description, style: .bodySmall, color: .Text.secondary)
+                        DSText(description, style: .bodySmallMedium, color: .Text.secondary)
                     }
                 }
 
@@ -85,8 +85,8 @@ public struct DSToggleGroup: View {
                 }
             }
         }
-        .cornerRadius(.radiusMD)
-        .border(.Border.default, lineWidth: .thin, cornerRadius: .radiusMD)
+        .cornerRadius(.radiusSM)
+        .border(.Border.subtle, lineWidth: .thin, cornerRadius: .radiusSM)
     }
 
     public struct ToggleItem {
@@ -177,7 +177,7 @@ public struct DSToggleGroup: View {
 
         var body: some View {
             VStack(spacing: .xl) {
-                DSText("Notification Settings", style: .headline, color: .Text.primary)
+                DSText("Notification Settings", style: .heading3, color: .Text.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 DSToggleGroup(toggles: [
@@ -198,7 +198,7 @@ public struct DSToggleGroup: View {
                     )
                 ])
 
-                DSText("Sound & Haptics", style: .headline, color: .Text.primary)
+                DSText("Sound & Haptics", style: .heading3, color: .Text.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 DSToggleGroup(toggles: [
@@ -234,7 +234,7 @@ public struct DSToggleGroup: View {
                 VStack(spacing: .xl) {
                     // Connectivity
                     VStack(alignment: .leading, spacing: .sm) {
-                        DSText("Connectivity", style: .caption, color: .Text.secondary)
+                        DSText("Connectivity", style: .label, color: .Text.secondary)
                             .padding(.horizontal, .sm)
 
                         DSToggleGroup(toggles: [

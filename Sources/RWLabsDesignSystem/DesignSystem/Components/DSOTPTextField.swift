@@ -2,57 +2,15 @@
 //  DSOTPTextField.swift
 //  RWLabsDesignSystem
 //
-//  OTP Input Field Component with auto-advance and auto-backspace
+//  OTP input matching the Figma "OTP field": 56pt circles that fill left to right,
+//  with auto-advance and auto-backspace.
+//
+//  Figma states map onto the code length and error message:
+//    1–5    → digits entered; the next empty circle shows the caret while focused
+//    Error  → errorMessage set
 //
 
 import SwiftUI
-
-// MARK: - OTP TextField State
-public enum DSOTPTextFieldState {
-    case `default`
-    case focused
-    case error
-    case disabled
-
-    @MainActor
-    func borderColor(filled: Bool = false) -> Color {
-        switch self {
-        case .default:
-            return filled ? Color.Border.dark : Color.Border.default
-        case .focused:
-            return focusedColor
-        case .error:
-            return Color.Border.error
-        case .disabled:
-            return Color.Border.disabled
-        }
-    }
-    
-    @MainActor
-    var focusedColor: Color {
-        Color.Border.active
-    }
-
-    @MainActor
-    var borderWidth: CGFloat {
-        switch self {
-        case .focused:
-            return DSBorderWidth.medium
-        default:
-            return DSBorderWidth.thin
-        }
-    }
-
-    @MainActor
-    var backgroundColor: Color {
-        switch self {
-        case .disabled:
-            return Color.Button.disabled
-        default:
-            return Color.Background.primary
-        }
-    }
-}
 
 // MARK: - DSOTPTextField Component
 public struct DSOTPTextField: View {
@@ -87,14 +45,9 @@ public struct DSOTPTextField: View {
         self.onChange = onChange
     }
 
-    private var currentState: DSOTPTextFieldState {
-        if isDisabled {
-            return .disabled
-        } else if errorMessage != nil {
-            return .error
-        } else {
-            return .default
-        }
+    /// The circle that receives the next digit.
+    private var activeIndex: Int {
+        min(code.count, length - 1)
     }
 
     private func getCharacter(at index: Int) -> String {
@@ -112,10 +65,11 @@ public struct DSOTPTextField: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: .xs) {
-            // Label
-            if let label = label {
-                DSText(label, style: .bodySmall, color: .Text.secondary)
+        VStack(alignment: .leading, spacing: .xxs) {
+            if let label {
+                Text(label)
+                    .fontStyle(.bodySmall)
+                    .foregroundColor(.Input.title)
             }
 
             // OTP Input Fields
@@ -123,14 +77,14 @@ public struct DSOTPTextField: View {
                 ForEach(0..<length, id: \.self) { index in
                     OTPSingleField(
                         character: getCharacter(at: index),
-                        state: currentState,
-                        isFocused: focusedField == index,
+                        showsCaret: focusedField != nil && index == code.count,
+                        isError: errorMessage != nil,
                         isDisabled: isDisabled,
                         fieldSize: fieldSize
                     )
-                    .frame(width: fieldSize, height: fieldSize)
                     .onTapGesture {
-                        focusedField = index
+                        // The hidden field is bound to the next empty circle, so focus that one
+                        focusedField = activeIndex
                     }
                 }
             }
@@ -155,22 +109,15 @@ public struct DSOTPTextField: View {
                 set: { updateCode(newCode: $0) }
             ))
             .keyboardType(.numberPad)
+            .textContentType(.oneTimeCode)
             .textInputAutocapitalization(.never)
             .frame(height: 0)
             .opacity(0)
-            .focused($focusedField, equals: code.count < length ? code.count : length - 1)
+            .focused($focusedField, equals: activeIndex)
             .disabled(isDisabled)
 
-            // Helper or Error Text
-            if let errorMessage = errorMessage {
-                HStack(spacing: .xxs) {
-                    Image(systemName: "exclamationmark.circle.fill")
-                        .foregroundColor(Color.Semantic.error)
-                        .font(.system(size: 12))
-                    DSText(errorMessage, style: .caption, color: .Semantic.error)
-                }
-            } else if let helperText = helperText {
-                DSText(helperText, style: .caption, color: .Text.tertiary)
+            if let message = errorMessage ?? helperText {
+                DSInputHelper(message, isError: errorMessage != nil)
             }
         }
     }
@@ -179,89 +126,68 @@ public struct DSOTPTextField: View {
 // MARK: - Single OTP Field
 private struct OTPSingleField: View {
     let character: String
-    let state: DSOTPTextFieldState
-    let isFocused: Bool
+    let showsCaret: Bool
+    let isError: Bool
     let isDisabled: Bool
     let fieldSize: CGFloat
 
+    /// Entered and active circles get the heavier 2pt ring; empty ones stay at 1pt.
+    private var isEmphasized: Bool {
+        isError || !character.isEmpty || showsCaret
+    }
+
+    private var borderColor: Color {
+        if isDisabled { return .clear }
+        if isError { return .Input.borderError }
+        return isEmphasized ? .Input.borderFocused : .Input.otpBorderEmpty
+    }
+
     var body: some View {
         ZStack {
-            // Background
             Circle()
-                .fill(state.backgroundColor)
+                .fill(isDisabled ? Color.Input.autofillBackground : Color.Input.background)
 
-            // Border
             Circle()
-                .stroke(
-                    isFocused ? state.focusedColor : (state.borderColor(filled: !character.isEmpty)),
-                    lineWidth: isFocused ? state.borderWidth : DSBorderWidth.thin
-                )
+                .strokeBorder(borderColor, lineWidth: isEmphasized ? .medium : .thin)
 
-            // Cursor or Character
-            if isFocused && character.isEmpty {
-                DSText("|", style: .body, color: .Text.primary)
-                    .opacity(0.7)
-            } else {
-                DSText(character, style: .body, color: character.isEmpty ? .Text.placeholder : .Text.primary)
-            }
+            Text(showsCaret && character.isEmpty ? "|" : character)
+                .fontStyle(.body)
+                .foregroundColor(isError ? .Input.borderError : (isDisabled ? .Input.autofillText : .Input.text))
         }
         .frame(width: fieldSize, height: fieldSize)
+        .contentShape(Circle())
     }
 }
 
 // MARK: - Preview
-struct DSOTPTextField_Previews: PreviewProvider {
-    static var previews: some View {
-        VStack(spacing: .lg) {
-            // Default state
-            VStack(alignment: .leading, spacing: .md) {
-                DSText("Default", style: .bodySmall, color: .Text.secondary)
-
-                DSOTPTextField(
-                    code: .constant("1"),
-                    length: 4,
-                    label: "Enter OTP",
-                    helperText: "Check your email for the code"
-                )
-            }
-
-            // With error
-            VStack(alignment: .leading, spacing: .md) {
-                DSText("With Error", style: .bodySmall, color: .Text.secondary)
-
-                DSOTPTextField(
-                    code: .constant("123"),
-                    length: 4,
-                    label: "Enter OTP",
-                    errorMessage: "Invalid OTP"
-                )
-            }
-
-            // Filled
-            VStack(alignment: .leading, spacing: .md) {
-                DSText("Complete", style: .bodySmall, color: .Text.secondary)
-
-                DSOTPTextField(
-                    code: .constant("1234"),
-                    length: 4,
-                    label: "Enter OTP"
-                )
-            }
-
-            // Disabled
-            VStack(alignment: .leading, spacing: .md) {
-                DSText("Disabled", style: .bodySmall, color: .Text.secondary)
-
-                DSOTPTextField(
-                    code: .constant("1234"),
-                    length: 4,
-                    label: "Enter OTP",
-                    isDisabled: true
-                )
-            }
-
-            Spacer()
+/// Mirrors the Figma OTP field sheet.
+private struct DSOTPTextFieldGallery: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: .lg) {
+            DSOTPTextField(code: .constant("1"))
+            DSOTPTextField(code: .constant("12"))
+            DSOTPTextField(code: .constant("123"))
+            DSOTPTextField(code: .constant("1234"), label: "Enter OTP", helperText: "Check your messages for the code")
+            DSOTPTextField(code: .constant("1234"), errorMessage: "Invalid OTP")
+            DSOTPTextField(code: .constant("1234"), isDisabled: true)
         }
         .padding()
+        .frame(maxHeight: .infinity, alignment: .top)
+        .background(Color.Background.primary)
     }
+}
+
+#Preview("RWLabs") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSOTPTextFieldGallery().designSystem()
+}
+
+#Preview("RWLabs Dark") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSOTPTextFieldGallery().designSystem().preferredColorScheme(.dark)
+}
+
+#Preview("BW") {
+    DesignSystem.configure(theme: BWTheme())
+    return DSOTPTextFieldGallery().designSystem()
 }

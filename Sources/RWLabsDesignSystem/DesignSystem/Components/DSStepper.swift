@@ -46,7 +46,7 @@ public struct DSStepper: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: .sm) {
             if let label = label {
-                DSText(label, style: .bodyMedium, color: isDisabled ? Color.Text.tertiary : Color.Text.primary)
+                DSText(label, style: .bodySmallMedium, color: isDisabled ? Color.Text.tertiary : Color.Text.primary)
             }
 
             HStack(spacing: .sm) {
@@ -57,25 +57,25 @@ public struct DSStepper: View {
                         .foregroundColor(canDecrement ? Color.Icon.brand : Color.Icon.secondary)
                         .frame(width: 36, height: 36)
                         .background(Color.Background.secondary)
-                        .cornerRadius(.radiusMD)
-                        .border(Color.Border.default, lineWidth: .thin, cornerRadius: .radiusMD)
+                        .cornerRadius(.radiusSM)
+                        .border(Color.Border.subtle, lineWidth: .thin, cornerRadius: .radiusSM)
                 }
                 .disabled(!canDecrement || isDisabled)
 
                 // Value display or text field
                 if showTextField {
                     TextField("", value: $value, format: .number)
-                        .fontStyle(.bodyMedium)
+                        .fontStyle(.bodySmallMedium)
                         .multilineTextAlignment(.center)
                         .frame(minWidth: 60)
                         .padding(.horizontal, .sm)
                         .padding(.vertical, .xs)
                         .background(Color.Background.secondary)
-                        .cornerRadius(.radiusMD)
-                        .border(Color.Border.default, lineWidth: .thin, cornerRadius: .radiusMD)
+                        .cornerRadius(.radiusSM)
+                        .border(Color.Border.subtle, lineWidth: .thin, cornerRadius: .radiusSM)
                         .disabled(isDisabled)
                 } else {
-                    DSText(formattedValue, style: .bodyMedium, color: Color.Text.primary)
+                    DSText(formattedValue, style: .bodySmallMedium, color: Color.Text.primary)
                         .frame(minWidth: 60)
                 }
 
@@ -86,8 +86,8 @@ public struct DSStepper: View {
                         .foregroundColor(canIncrement ? Color.Icon.brand : Color.Icon.secondary)
                         .frame(width: 36, height: 36)
                         .background(Color.Background.secondary)
-                        .cornerRadius(.radiusMD)
-                        .border(Color.Border.default, lineWidth: .thin, cornerRadius: .radiusMD)
+                        .cornerRadius(.radiusSM)
+                        .border(Color.Border.subtle, lineWidth: .thin, cornerRadius: .radiusSM)
                 }
                 .disabled(!canIncrement || isDisabled)
             }

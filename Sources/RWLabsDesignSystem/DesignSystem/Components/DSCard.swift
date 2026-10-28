@@ -32,7 +32,7 @@ public enum DSCardElevation {
     var borderColor: Color? {
         switch self {
         case .flat:
-            return Color.Border.default
+            return Color.Border.subtle
         default:
             return nil
         }
@@ -126,14 +126,14 @@ public struct DSContentCard: View {
                 // Content
                 VStack(alignment: .leading, spacing: .xs) {
                     if let subtitle = subtitle {
-                        DSText(subtitle, style: .caption, color: .Text.secondary)
+                        DSText(subtitle, style: .label, color: .Text.secondary)
                             .textCase(.uppercase)
                     }
 
-                    DSText(title, style: .headline, color: .Text.primary)
+                    DSText(title, style: .heading3, color: .Text.primary)
 
                     if let description = description {
-                        DSText(description, style: .bodyMedium, color: .Text.secondary)
+                        DSText(description, style: .bodySmallMedium, color: .Text.secondary)
                             .lineLimit(3)
                     }
                 }
@@ -144,7 +144,7 @@ public struct DSContentCard: View {
                     Divider()
                     Button(action: action) {
                         HStack {
-                            DSText("Learn More", style: .bodyMedium, color: .Text.brand)
+                            DSText("Learn More", style: .bodySmallMedium, color: .Text.brand)
                             Spacer()
                             Image(systemName: "arrow.right")
                                 .foregroundColor(Color.Icon.brand)
@@ -197,15 +197,15 @@ public struct DSInfoCard: View {
                     .cornerRadius(.md)
 
                 VStack(alignment: .leading, spacing: .xxs) {
-                    DSText(title, style: .bodySmall, color: .Text.secondary)
+                    DSText(title, style: .bodySmallMedium, color: .Text.secondary)
 
-                    DSText(value, style: .title3, color: .Text.primary)
+                    DSText(value, style: .heading3, color: .Text.primary)
 
                     if let trend = trend {
                         HStack(spacing: .xxs) {
                             Image(systemName: trendIsPositive ? "arrow.up" : "arrow.down")
                                 .font(.system(size: 10))
-                            DSText(trend, style: .caption, color: trendIsPositive ? .Semantic.success : .Semantic.error)
+                            DSText(trend, style: .label, color: trendIsPositive ? .Semantic.success : .Semantic.error)
                         }
                     }
                 }
@@ -238,7 +238,7 @@ struct DSCard_Previews: PreviewProvider {
 
                 DSCard(elevation: .low) {
                     VStack(alignment: .leading) {
-                        DSText("Low Elevation", style: .headline, color: .Text.primary)
+                        DSText("Low Elevation", style: .heading3, color: .Text.primary)
                         DSText("This is a card with low elevation", style: .body, color: .Text.primary)
                     }
                 }

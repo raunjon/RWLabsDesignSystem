@@ -87,14 +87,14 @@ public struct DSChatDateSeparator: View {
     public var body: some View {
         HStack {
             Rectangle()
-                .fill(Color.Border.default)
+                .fill(Color.Border.subtle)
                 .frame(height: 1)
 
-            DSText(date, style: .caption, color: .Text.secondary)
+            DSText(date, style: .label, color: .Text.secondary)
                 .padding(.horizontal, .sm)
 
             Rectangle()
-                .fill(Color.Border.default)
+                .fill(Color.Border.subtle)
                 .frame(height: 1)
         }
         .padding(.vertical, .md)
@@ -119,12 +119,12 @@ public struct DSTypingIndicator: View {
                 .frame(width: 32, height: 32)
                 .overlay(
                     Image(systemName: "ellipsis")
-                        .fontStyle(.caption)
+                        .fontStyle(.label)
                         .foregroundColor(Color.Icon.placeholder)
                 )
 
             VStack(alignment: .leading, spacing: .xxs) {
-                DSText(typingText, style: .caption, color: .Text.secondary)
+                DSText(typingText, style: .label, color: .Text.secondary)
 
                 HStack(spacing: 4) {
                     ForEach(0..<3) { index in
@@ -138,7 +138,7 @@ public struct DSTypingIndicator: View {
                 .padding(.horizontal, .sm)
                 .padding(.vertical, .xs)
                 .background(Color.Background.tertiary)
-                .cornerRadius(.radiusLG)
+                .cornerRadius(.radiusMD)
             }
 
             Spacer(minLength: 40)
@@ -201,7 +201,7 @@ public struct DSGroupChatHeader: View {
             // Back button
             Button(action: onBackTapped) {
                 Image(systemName: "chevron.left")
-                    .fontStyle(.title3)
+                    .fontStyle(.heading3)
                     .foregroundColor(Color.Icon.brand)
             }
 
@@ -225,10 +225,10 @@ public struct DSGroupChatHeader: View {
 
             // Group info
             VStack(alignment: .leading, spacing: 2) {
-                DSText(groupName, style: .headline, color: .Text.primary)
+                DSText(groupName, style: .heading3, color: .Text.primary)
                     .fontWeight(.semibold)
 
-                DSText("\(memberCount) members, \(onlineCount) online", style: .caption, color: .Text.secondary)
+                DSText("\(memberCount) members, \(onlineCount) online", style: .label, color: .Text.secondary)
             }
 
             Spacer()
@@ -245,7 +245,7 @@ public struct DSGroupChatHeader: View {
         .background(Color.Background.primary)
         .overlay(
             Rectangle()
-                .fill(Color.Border.default)
+                .fill(Color.Border.subtle)
                 .frame(height: 1),
             alignment: .bottom
         )
@@ -288,7 +288,7 @@ public struct DSGroupChatInput: View {
                 // Emoji button
                 Button(action: {}) {
                     Image(systemName: "face.smiling")
-                        .fontStyle(.title2)
+                        .fontStyle(.heading3)
                         .foregroundColor(Color.Background.secondaryInverse)
                 }
             }
@@ -310,7 +310,7 @@ public struct DSGroupChatInput: View {
         .background(Color.Background.primary)
         .overlay(
             Rectangle()
-                .fill(Color.Border.default)
+                .fill(Color.Border.subtle)
                 .frame(height: 1),
             alignment: .top
         )
@@ -358,7 +358,7 @@ public struct DSGroupMemberAvatars: View {
                                         .stroke(Color.Background.primary, lineWidth: 2)
                                 )
                                 .overlay(
-                                    DSText(member.initials, style: .captionSemi, color: .Text.primary)
+                                    DSText(member.initials, style: .label, color: .Text.primary)
                                 )
                         }
 
@@ -384,7 +384,7 @@ public struct DSGroupMemberAvatars: View {
                             .stroke(Color.Background.primary, lineWidth: 2)
                     )
                     .overlay(
-                        DSText("+\(members.count - maxVisible)", style: .caption3, color: .Text.secondary)
+                        DSText("+\(members.count - maxVisible)", style: .label, color: .Text.secondary)
                     )
             }
         }
@@ -499,7 +499,7 @@ public struct DSGroupChatView: View {
         VStack(alignment: message.isSentByCurrentUser ? .trailing : .leading, spacing: .xxs) {
             // Show sender name for group chat (only for received messages)
             if !message.isSentByCurrentUser {
-                DSText(message.senderName, style: .caption, color: .Text.secondary)
+                DSText(message.senderName, style: .label, color: .Text.secondary)
                     .padding(.leading, 40)
             }
 

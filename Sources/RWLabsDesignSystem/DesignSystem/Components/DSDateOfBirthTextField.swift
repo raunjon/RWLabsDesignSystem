@@ -55,18 +55,6 @@ public struct DSDateOfBirthTextField: View {
         }
     }
 
-    private var currentState: DSTextFieldState {
-        if isDisabled {
-            return .disabled
-        } else if errorMessage != nil {
-            return .error
-        } else if focusedField != nil {
-            return .focused
-        } else {
-            return .default
-        }
-    }
-
     private func updateTextBinding() {
         let formattedDate = "\(year)-\(month)-\(day)"
         text = formattedDate
@@ -113,12 +101,12 @@ public struct DSDateOfBirthTextField: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: .xs) {
-            // Label
-            if let label = label {
-                DSText(label, style: .bodySmall, color: Color.Text.secondary)
-            }
-
+        DSInputField(
+            title: label,
+            helper: errorMessage ?? helperText,
+            status: errorMessage != nil ? .error : .normal,
+            isFocused: focusedField != nil
+        ) {
             // Input Fields
             HStack(spacing: .sm) {
                 // Day Field
@@ -132,7 +120,7 @@ public struct DSDateOfBirthTextField: View {
                     .frame(maxWidth: 40)
                     .multilineTextAlignment(.center)
 
-                DSText("/", style: .body, color: Color.Text.secondary)
+                Text("/").foregroundColor(.Input.placeholder)
                     .frame(maxWidth: 10)
 
                 // Month Field
@@ -146,7 +134,7 @@ public struct DSDateOfBirthTextField: View {
                     .frame(maxWidth: 40)
                     .multilineTextAlignment(.center)
 
-                DSText("/", style: .body, color: Color.Text.secondary)
+                Text("/").foregroundColor(.Input.placeholder)
                     .frame(maxWidth: 10)
 
                 // Year Field
@@ -162,26 +150,11 @@ public struct DSDateOfBirthTextField: View {
 
                 Spacer()
             }
-            .padding(.input)
-            .background(currentState.backgroundColor)
-            .cornerRadius(.radiusXL)
-            .border(currentState.borderColor, lineWidth: .medium, cornerRadius: .radiusXL)
-            .onChange(of: isDisabled) { _, newValue in
-                if newValue {
-                    focusedField = nil
-                }
-            }
-
-            // Helper or Error Text
-            if let errorMessage = errorMessage {
-                HStack(spacing: .xxs) {
-                    Image(systemName: "exclamationmark.circle.fill")
-                        .foregroundColor(Color.Semantic.error)
-                        .font(.system(size: 12))
-                    DSText(errorMessage, style: .caption, color: Color.Semantic.error)
-                }
-            } else if let helperText = helperText {
-                DSText(helperText, style: .caption, color: Color.Text.tertiary)
+        }
+        .disabled(isDisabled)
+        .onChange(of: isDisabled) { _, newValue in
+            if newValue {
+                focusedField = nil
             }
         }
     }

@@ -1,27 +1,25 @@
 //
 //  DSPicker.swift
-//  RWLDesignSystem
+//  RWLabsDesignSystem
 //
-//  Picker component with label and icon support
+//  Picker over values with a `description`, built on DSBasePicker (see DSPickerBase.swift).
+//  Opens inline like the Figma "Gender picker" by default.
 //
 
 import SwiftUI
 
 // MARK: - DSPicker
-
+/// Always has a value.
 public struct DSPicker<T: Hashable & CustomStringConvertible>: View {
-
-    // MARK: - Properties
-
     @Binding var selection: T
     let options: [T]
     let label: String?
     let icon: Image?
     let placeholder: String
+    let helper: String?
+    let presentation: DSPickerPresentation
     let isDisabled: Bool
-    var labelView: AnyView?
-
-    // MARK: - Initialization
+    let labelView: AnyView?
 
     public init(
         selection: Binding<T>,
@@ -29,6 +27,8 @@ public struct DSPicker<T: Hashable & CustomStringConvertible>: View {
         label: String? = nil,
         icon: Image? = nil,
         placeholder: String = "Select an option",
+        helper: String? = nil,
+        presentation: DSPickerPresentation = .inline,
         isDisabled: Bool = false
     ) {
         self._selection = selection
@@ -36,10 +36,13 @@ public struct DSPicker<T: Hashable & CustomStringConvertible>: View {
         self.label = label
         self.icon = icon
         self.placeholder = placeholder
+        self.helper = helper
+        self.presentation = presentation
         self.isDisabled = isDisabled
         self.labelView = nil
     }
 
+    /// A system menu with your own trigger, e.g. the country code in `DSMobileInputField`.
     public init<Content: View>(
         selection: Binding<T>,
         options: [T],
@@ -47,99 +50,78 @@ public struct DSPicker<T: Hashable & CustomStringConvertible>: View {
         icon: Image? = nil,
         placeholder: String = "Select an option",
         isDisabled: Bool = false,
-        @ViewBuilder labelView: @escaping () -> Content
+        @ViewBuilder labelView: () -> Content
     ) {
         self._selection = selection
         self.options = options
         self.label = label
         self.icon = icon
         self.placeholder = placeholder
+        self.helper = nil
+        self.presentation = .menu
         self.isDisabled = isDisabled
-        self.labelView = labelView().anyView()
+        self.labelView = AnyView(labelView())
     }
 
-    // MARK: - Body
-
     public var body: some View {
-        VStack(alignment: .leading, spacing: .xs) {
-            if let label = label {
-                DSText(label, style: .bodyMedium, color: isDisabled ? Color.Text.disabled : Color.Text.primary)
-            }
-
-            Menu {
-                ForEach(options, id: \.self) { option in
-                    Button(action: {
-                        if !isDisabled {
-                            selection = option
-                        }
-                    }) {
-                        if selection == option {
-                            Label(option.description, systemImage: "checkmark")
-                        } else {
-                            Text(option.description)
-                        }
+        Group {
+            if let labelView {
+                Menu {
+                    Picker(label ?? "", selection: $selection) {
+                        ForEach(options, id: \.self) { Text($0.description).tag($0) }
                     }
-                }
-            } label: {
-                if let labelView {
+                } label: {
                     labelView
-                } else {
-                    HStack {
-                        if let icon = icon {
-                            icon
-                                .foregroundColor(Color.Text.disabled)
-                        }
-                        
-                        DSText(selection.description, style: .body, color: Color.Text.primary)
-                        
-                        Spacer()
-                        
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 12))
-                            .foregroundColor(Color.Text.tertiary)
-                    }
-                    .padding(.horizontal, .md)
-                    .padding(.vertical, .sm)
-                    .background(Color.Background.secondary)
-                    .cornerRadius(.radiusMD)
-                    .border(Color.Border.default, lineWidth: .thin, cornerRadius: .radiusMD)
                 }
+                .buttonStyle(.plain)
+            } else {
+                DSBasePicker(
+                    label,
+                    selection: Binding(get: { selection }, set: { if let new = $0 { selection = new } }),
+                    options: options,
+                    placeholder: placeholder,
+                    helper: helper,
+                    icon: icon,
+                    presentation: presentation
+                )
             }
-            .disabled(isDisabled)
-            .opacity(isDisabled ? 0.5 : 1.0)
         }
+        .disabled(isDisabled)
     }
 }
 
 // MARK: - Preview
+private struct DSPickerGallery: View {
+    @State private var option = "Option 1"
+    @State private var country: String?
+    @State private var city: String? = "Pune"
 
-#Preview("Picker") {
-    VStack(spacing: .xl) {
-        DSPicker(
-            selection: .constant("Option 1"),
-            options: ["Option 1", "Option 2", "Option 3"],
-            label: "Choose Option"
-        )
-
-        DSPicker(
-            selection: .constant("United States"),
-            options: ["United States", "Canada", "Mexico"],
-            label: "Country",
-            icon: Image(systemName: "globe")
-        )
-
-        DSPicker(
-            selection: .constant("Disabled"),
-            options: ["Disabled", "Option"],
-            label: "Disabled Picker",
-            isDisabled: true
-        )
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: .lg) {
+                DSPicker(selection: $option, options: ["Option 1", "Option 2", "Option 3"], label: "Choose option")
+                DSPicker(selection: $option, options: ["Option 1", "Option 2"], label: "Menu", presentation: .menu)
+                DSOptionalPicker(selection: $country, options: ["India", "Canada"], label: "Country",
+                                 icon: Image(systemName: "globe"), helper: "Where you live now")
+                DSOptionalPicker(selection: $city, options: ["Pune", "Mumbai"], label: "Disabled", isDisabled: true)
+            }
+            .padding()
+        }
+        .background(Color.Background.primary)
     }
-    .padding()
 }
 
-extension View {
-    func anyView() -> AnyView {
-        AnyView(self)
-    }
+#Preview("RWLabs") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSPickerGallery().designSystem()
+}
+
+#Preview("RWLabs Dark") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSPickerGallery().designSystem().preferredColorScheme(.dark)
+}
+
+#Preview("BW") {
+    DesignSystem.configure(theme: BWTheme())
+    return DSPickerGallery().designSystem()
 }

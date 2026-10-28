@@ -51,14 +51,8 @@ public struct CountryCode: Identifiable, Hashable, CustomStringConvertible, Send
 }
 
 // MARK: - DS Mobile Input Field Component
-/// A complete mobile phone number input field with integrated country code selector.
-///
-/// Features:
-/// - Country code dropdown with flag, code, and name
-/// - Phone number input field with proper keyboard type
-/// - Clear button that appears when text is entered
-/// - Theme-aware styling using design system colors and typography
-/// - Proper border and corner radius styling
+/// Phone number input matching the Figma "Phone number field": a country segment
+/// (flag, dial code, chevron) joined to the number field, with a clear button.
 ///
 /// Usage:
 /// ```swift
@@ -72,68 +66,107 @@ public struct DSMobileInputField: View {
     @Binding public var selectedCountryCode: CountryCode
     /// Phone number input - binds to parent state for phone number entry
     @Binding public var mobile: String
-    
-    @FocusState var isFocused: Bool
 
-    public init(selectedCountryCode: Binding<CountryCode>, mobile: Binding<String>) {
+    let countries: [CountryCode]
+    let placeholder: String
+    let status: DSInputFieldStatus
+
+    @FocusState private var isFocused: Bool
+
+    /// Figma's phone field is 46pt, between the small and large input sizes.
+    private let height: CGFloat = 46
+
+    public init(
+        selectedCountryCode: Binding<CountryCode>,
+        mobile: Binding<String>,
+        countries: [CountryCode] = CountryCode.all,
+        placeholder: String = "Enter your number",
+        status: DSInputFieldStatus = .normal
+    ) {
         self._selectedCountryCode = selectedCountryCode
         self._mobile = mobile
+        self.countries = countries
+        self.placeholder = placeholder
+        self.status = status
+    }
+
+    private var borderColor: Color {
+        if status == .error { return .Input.borderError }
+        return isFocused ? .Input.borderFocused : .Input.border
     }
 
     public var body: some View {
-        // Phone Number Field with Country Code
         HStack(spacing: 0) {
             // Country Code Dropdown
-            DSPicker(selection: $selectedCountryCode, options: CountryCode.all) {
-                HStack(spacing: .s8) {
-                    DSText(selectedCountryCode.flag, style: .body)
-                    DSText(selectedCountryCode.code, style: .body)
+            DSPicker(selection: $selectedCountryCode, options: countries) {
+                HStack(spacing: .xs) {
+                    Text(selectedCountryCode.flag)
+                    Text(selectedCountryCode.code)
+                        .foregroundColor(.Input.text)
                     Image(systemName: "chevron.down")
-                        .foregroundColor(Color.Icon.secondary)
+                        .font(.system(size: DSInputFieldSize.large.iconSize))
+                        .foregroundColor(.Input.icon)
                 }
-                .frame(height: 46)
-                .padding(.horizontal, .s8)
-                .background(Color.Background.primary)
+                .fontStyle(.body)
+                .padding(.horizontal, .sm)
+                .frame(maxHeight: .infinity)
             }
 
-            // Divider
             Rectangle()
-                .frame(width: 1)
-                .foregroundStyle(Color.Border.default)
+                .fill(borderColor)
+                .frame(width: .thin)
 
             // Phone Number Input Field
-            HStack(spacing: .s8) {
-                TextField("Enter your number", text: $mobile)
-                    .foregroundColor(Color.Text.primary)
+            HStack(spacing: .xs) {
+                TextField("", text: $mobile, prompt: Text(placeholder).foregroundColor(.Input.placeholder))
                     .keyboardType(.numberPad)
-                    .accentColor(Color.Icon.brand)
+                    .textContentType(.telephoneNumber)
                     .focused($isFocused)
+                    .foregroundColor(.Input.text)
+                    .tint(.Input.borderFocused)
 
-                if !mobile.isEmpty {
-                    Button(action: {
-                        mobile = ""
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(Color.Text.placeholder)
-                    }
-                }
+                DSInputClearButton(text: $mobile)
             }
-            .frame(height: 46)
-            .padding(.horizontal, .s12)
-            .background(Color.Background.primary)
+            .fontStyle(.body)
+            .padding(.horizontal, .sm)
         }
-        .frame(height: 46)
-        .border(isFocused ? .Border.active : .Border.default, lineWidth: 1, cornerRadius: .r16)
-        .animation(.easeInOut, value: isFocused)
+        .frame(height: height)
+        .background(Color.Input.background)
+        .clipShape(RoundedRectangle(cornerRadius: .radiusLG))
+        .border(borderColor, lineWidth: .thin, cornerRadius: .radiusLG)
+        .animation(.easeInOut(duration: 0.15), value: isFocused)
     }
 }
 
 // MARK: - Preview
-#Preview {
-    @State var country = CountryCode.all[0]
-    @State var phone = ""
+private struct DSMobileInputFieldGallery: View {
+    @State private var country = CountryCode.all[0]
+    @State private var empty = ""
+    @State private var filled = "98765 43210"
 
-    return DSMobileInputField(selectedCountryCode: $country, mobile: $phone)
-        .padding(.s24)
+    var body: some View {
+        VStack(spacing: .lg) {
+            DSMobileInputField(selectedCountryCode: $country, mobile: $empty)
+            DSMobileInputField(selectedCountryCode: $country, mobile: $filled)
+            DSMobileInputField(selectedCountryCode: $country, mobile: $filled, status: .error)
+        }
+        .padding(.lg)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .background(Color.Background.primary)
+    }
+}
+
+#Preview("RWLabs") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSMobileInputFieldGallery().designSystem()
+}
+
+#Preview("RWLabs Dark") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSMobileInputFieldGallery().designSystem().preferredColorScheme(.dark)
+}
+
+#Preview("BW") {
+    DesignSystem.configure(theme: BWTheme())
+    return DSMobileInputFieldGallery().designSystem()
 }

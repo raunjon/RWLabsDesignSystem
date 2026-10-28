@@ -49,8 +49,8 @@ public struct DSSegmentedControl<T: Hashable>: View {
             }
         }
         .background(Color.Background.secondary)
-        .cornerRadius(.radiusMD)
-        .border(Color.Border.default, lineWidth: .thin, cornerRadius: .radiusMD)
+        .cornerRadius(.radiusSM)
+        .border(Color.Border.subtle, lineWidth: .thin, cornerRadius: .radiusSM)
         .opacity(isDisabled ? 0.5 : 1.0)
     }
 
@@ -71,7 +71,7 @@ public struct DSSegmentedControl<T: Hashable>: View {
                         .font(.system(size: 14))
                 }
 
-                DSText(option.label, style: .bodyMedium, color: isSelected ? Color.Text.primary : Color.Text.secondary)
+                DSText(option.label, style: .bodySmallMedium, color: isSelected ? Color.Text.primary : Color.Text.secondary)
             }
             .padding(.horizontal, .md)
             .padding(.vertical, .sm)

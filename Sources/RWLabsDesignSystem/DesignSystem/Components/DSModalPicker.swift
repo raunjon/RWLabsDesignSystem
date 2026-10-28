@@ -183,39 +183,14 @@ public struct DSModalPicker<T: Identifiable & Equatable & Hashable>: View where 
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: .xs) {
-            // Label
-            if let label = label {
-                DSText(label, style: .bodySmall, color: .Text.secondary)
-            }
-
-            // Trigger Button
-            Button(action: {
-                isPresented = true
-            }) {
-                HStack {
-                    if let icon = icon {
-                        icon
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 20, height: 20)
-                            .foregroundColor(Color.Text.tertiary)
-                    }
-
-                    DSText(displayValue, style: .body, color: hasSelection ? .Text.primary : .Text.tertiary)
-
-                    Spacer()
-
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 14))
-                        .foregroundColor(Color.Text.tertiary)
-                }
-                .padding(.md)
-                .background(Color.Background.secondary)
-                .cornerRadius(.radiusMD)
-                .border(.Border.default, lineWidth: 1)
+        Button {
+            isPresented = true
+        } label: {
+            DSPickerField(title: label, icon: icon, isOpen: isPresented, placeholder: placeholder) {
+                hasSelection ? Text(displayValue) : nil
             }
         }
+        .buttonStyle(.plain)
         .sheet(isPresented: $isPresented) {
             ModalPickerContent(
                 selection: $selection,
@@ -262,27 +237,23 @@ private struct ModalPickerContent<T: Identifiable & Equatable & Hashable>: View 
             if filteredOptions.isEmpty {
                 EmptySearchState()
             } else {
-                List {
-                    ForEach(filteredOptions) { option in
-                        Button(action: {
-                            handleSelection(option)
-                        }) {
-                            HStack {
-                                DSText(displayText(option), style: .body, color: .Text.primary)
-
-                                Spacer()
-
-                                selectionIndicator(for: option)
+                ScrollView {
+                    LazyVStack(spacing: .xs) {
+                        ForEach(filteredOptions) { option in
+                            Button {
+                                handleSelection(option)
+                            } label: {
+                                DSOptionRow(isSelected: isSelected(option)) { Text(displayText(option)) }
                             }
-                            .contentShape(Rectangle())
+                            .buttonStyle(.plain)
                             .id(option)
                         }
-                        .listRowBackground(Color.Background.primary)
                     }
+                    .padding()
                 }
-                .listStyle(.plain)
             }
         }
+        .background(Color.Background.primary)
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -319,25 +290,8 @@ private struct ModalPickerContent<T: Identifiable & Equatable & Hashable>: View 
         }
     }
 
-    @ViewBuilder
-    private func selectionIndicator(for option: T) -> some View {
-        if isMultiSelect {
-            if multiSelection.contains(option) {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(Color.Icon.brand)
-                    .font(.system(size: 20))
-            } else {
-                Image(systemName: "circle")
-                    .foregroundColor(Color.Icon.brand)
-                    .font(.system(size: 20))
-            }
-        } else {
-            if selection?.id == option.id {
-                Image(systemName: "checkmark")
-                    .foregroundColor(Color.Icon.brand)
-                    .font(.system(size: 16, weight: .semibold))
-            }
-        }
+    private func isSelected(_ option: T) -> Bool {
+        isMultiSelect ? multiSelection.contains(option) : selection?.id == option.id
     }
 }
 
@@ -369,7 +323,7 @@ private struct SearchBar: View {
         }
         .padding(.md)
         .background(Color.Background.secondary)
-        .cornerRadius(.radiusMD)
+        .cornerRadius(.radiusSM)
         .padding()
     }
 }
@@ -383,7 +337,7 @@ private struct EmptySearchState: View {
                 .font(.system(size: 48))
                 .foregroundColor(Color.Text.tertiary)
 
-            DSText("No results found", style: .headline, color: .Text.primary)
+            DSText("No results found", style: .heading3, color: .Text.primary)
 
             DSText("Try adjusting your search", style: .body, color: .Text.secondary)
 
@@ -495,7 +449,7 @@ public struct PickerOption: Identifiable, Equatable, Hashable {
                 )
 
                 if let city = selectedCity {
-                    DSText("Selected: \(city)", style: .caption, color: .Text.primary)
+                    DSText("Selected: \(city)", style: .label, color: .Text.primary)
                 }
 
                 Spacer()
@@ -528,10 +482,10 @@ public struct PickerOption: Identifiable, Equatable, Hashable {
 
                 if !selectedCities.isEmpty {
                     VStack(alignment: .leading, spacing: .xs) {
-                        DSText("Selected cities:", style: .caption, color: .Text.secondary)
+                        DSText("Selected cities:", style: .label, color: .Text.secondary)
 
                         ForEach(Array(selectedCities).sorted(), id: \.self) { city in
-                            DSText("• \(city)", style: .bodySmall, color: .Text.primary)
+                            DSText("• \(city)", style: .bodySmallMedium, color: .Text.primary)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)

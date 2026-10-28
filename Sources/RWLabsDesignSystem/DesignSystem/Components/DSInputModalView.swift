@@ -133,7 +133,7 @@ public struct DSInputModalView: View {
             VStack(spacing: .sm) {
                 // Title
                 if let title = title {
-                    DSText(title, style: .title2, color: Color.Text.primary)
+                    DSText(title, style: .heading3, color: Color.Text.primary)
                         .multilineTextAlignment(.center)
                         .padding(.top, .md)
                         .padding(.horizontal, .lg)
@@ -141,7 +141,7 @@ public struct DSInputModalView: View {
 
                 // Subtitle
                 if let subtitle = subtitle {
-                    DSText(subtitle, style: .bodyMedium, color: Color.Text.secondary)
+                    DSText(subtitle, style: .bodySmallMedium, color: Color.Text.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.top, .xxs)
                         .padding(.horizontal, .lg)
@@ -233,7 +233,7 @@ private struct DSInputModalActionButton: View {
         case .cancel:
             DSButton(
                 title: config.title,
-                variant: config.isDestructive ? .destructive : .outline,
+                variant: config.isDestructive ? .destructive : .tertiary,
                 size: .small,
                 isLoading: config.isLoading,
                 isDisabled: config.isDisabled

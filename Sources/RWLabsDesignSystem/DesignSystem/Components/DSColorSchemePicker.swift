@@ -15,7 +15,7 @@ public struct DSColorSchemePicker: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: .md) {
-            DSText("Appearance", style: .headline, color: .Text.primary)
+            DSText("Appearance", style: .heading3, color: .Text.primary)
 
             HStack(spacing: .md) {
                 ForEach(DSColorSchemePreference.allCases) { scheme in
@@ -41,17 +41,17 @@ private struct ColorSchemeButton: View {
         Button(action: action) {
             VStack(spacing: .sm) {
                 Image(systemName: scheme.icon)
-                    .fontStyle(.title1)
+                    .fontStyle(.heading2)
                     .foregroundColor(isSelected ? Color.Text.brand: Color.Text.secondary)
 
-                DSText(scheme.displayName, style: .caption, color: isSelected ? .Text.brand : .Text.secondary)
+                DSText(scheme.displayName, style: .label, color: isSelected ? .Text.brand : .Text.secondary)
             }
             .frame(maxWidth: .infinity)
             .padding(.md)
             .background(
                 RoundedRectangle(cornerRadius: .md)
                     .fill(isSelected ? Color.Background.brand.opacity(0.1) : Color.clear)
-                    .border(isSelected ? Color.Border.active : Color.Border.default, lineWidth: isSelected ? 2 : 1, cornerRadius: .md)
+                    .border(isSelected ? Color.Border.active : Color.Border.subtle, lineWidth: isSelected ? 2 : 1, cornerRadius: .md)
             )
         }
         .buttonStyle(PlainButtonStyle())
@@ -74,7 +74,7 @@ public struct DSColorSchemePickerCompact: View {
                         Image(systemName: scheme.icon)
                             .fontStyle(.body)
 
-                        DSText(scheme.displayName, style: .bodySmall, color: schemeManager.selectedScheme == scheme ? .white : .Text.primary)
+                        DSText(scheme.displayName, style: .bodySmallMedium, color: schemeManager.selectedScheme == scheme ? .white : .Text.primary)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, .sm)
@@ -89,7 +89,7 @@ public struct DSColorSchemePickerCompact: View {
         }
         .background(Color.Background.secondary)
         .cornerRadius(.sm)
-        .border(.Border.default, lineWidth: 1)
+        .border(.Border.subtle, lineWidth: 1)
     }
 }
 

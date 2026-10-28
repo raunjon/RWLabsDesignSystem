@@ -87,11 +87,11 @@ public struct DSAlert: View {
 
             // Content
             VStack(alignment: .leading, spacing: .xxs) {
-                DSText(title, style: .bodyMedium, color: .Text.primary)
+                DSText(title, style: .bodySmallMedium, color: .Text.primary)
                     .fontWeight(.semibold)
 
                 if let message = message {
-                    DSText(message, style: .bodySmall, color: .Text.secondary)
+                    DSText(message, style: .bodySmallMedium, color: .Text.secondary)
                 }
             }
 
@@ -108,8 +108,8 @@ public struct DSAlert: View {
         }
         .padding(DSSpacing.Component.alertPadding)
         .background(type.backgroundColor)
-        .cornerRadius(.radiusMD)
-        .border(type.color.opacity(0.3), lineWidth: .thin, cornerRadius: .radiusMD)
+        .cornerRadius(.radiusSM)
+        .border(type.color.opacity(0.3), lineWidth: .thin, cornerRadius: .radiusSM)
     }
 }
 

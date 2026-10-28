@@ -2,201 +2,203 @@
 //  Typography.swift
 //  RWLDesignSystem
 //
-//  Design system typography tokens with theme-aware sizing and weight management.
-//  Provides predefined font styles, helper methods, and view extensions for consistent
-//  typography across the application.
+//  Typography tokens matching the Figma type scale (Headings, Body, Labels).
+//
+//  The design system renders text in the system font. An app swaps the font by giving its
+//  theme a different `DSTypographyScale`, either `DSCustomFontTypography(family:)` for a
+//  bundled font family or its own conformance:
+//
+//  DesignSystem.configure(typography: DSCustomFontTypography(family: "Inter"))
 //
 //  Usage:
-//  - Use .fontStyle(.title) on Text views for clean, theme-aware typography
-//  - Access helper methods like DSTypography.body for font properties
-//  - All styles automatically respect the configured theme's font family and sizing
+//  - `Text("Hello").typography(.heading2)` applies font, letter spacing, line height and color
+//  - `Text("Hello").fontStyle(.body)` applies font, letter spacing and line height only
 //
 
 import SwiftUI
 
-// MARK: - Typography System (Theme-Aware)
-/// Central typography system providing theme-aware font styles, weights, and sizing.
-/// All typography is automatically calculated based on the current design system theme,
-/// ensuring consistency across the application and supporting dynamic type scaling.
-public struct DSTypography {
+// MARK: - Text Metrics
+/// Size, weight and spacing for one text style.
+public struct DSTextMetrics: Sendable, Equatable {
+    public var size:          CGFloat
+    public var weight:        Font.Weight
+    public var lineHeight:    CGFloat
+    public var letterSpacing: CGFloat
 
-    // MARK: - Font Weights
-    /// Standard font weight options matching SwiftUI Font.Weight values
-    public enum FontWeight {
-        /// Regular weight (400) - default text weight
-        case regular
-        /// Medium weight (500) - slightly heavier than regular
-        case medium
-        /// SemiBold weight (600) - emphasized text
-        case semibold
-        /// Bold weight (700) - strong emphasis
-        case bold
+    public init(size: CGFloat, weight: Font.Weight, lineHeight: CGFloat, letterSpacing: CGFloat = -0.15) {
+        self.size = size
+        self.weight = weight
+        self.lineHeight = lineHeight
+        self.letterSpacing = letterSpacing
+    }
+}
 
-        var value: Font.Weight {
-            switch self {
-            case .regular: return .regular
-            case .medium: return .medium
-            case .semibold: return .semibold
-            case .bold: return .bold
-            }
-        }
+// MARK: - Typography Scale Protocol
+/// Supplies the fonts and metrics behind every `DSTypography.Style`.
+/// Both requirements have defaults: the system font and the Figma metrics.
+public protocol DSTypographyScale: Sendable {
+    /// The font for a size and weight. Defaults to the system font.
+    func uiFont(size: CGFloat, weight: Font.Weight) -> UIFont
+
+    /// Size, weight, line height and letter spacing for a style. Defaults to the Figma scale.
+    func metrics(for style: DSTypography.Style) -> DSTextMetrics
+}
+
+public extension DSTypographyScale {
+    func uiFont(size: CGFloat, weight: Font.Weight) -> UIFont {
+        .systemFont(ofSize: size, weight: weight.uiFontWeight)
     }
 
-    // MARK: - Font Styles (Typography Scale)
-    /// Predefined typography styles for consistent text hierarchy across the application.
-    /// Each style defines a specific size, weight combination and is theme-aware.
-    /// Use .fontStyle(_:) extension on View for easy application.
-    public enum Style: String {
-        /// Large display heading - 40px, Bold weight
-        case largeTitle
-        /// Main heading - 24px, Bold weight
-        case title
-        /// Title level 1 - 24px, Semibold weight
-        case title1
-        /// Title level 2 - 20px, SemiBold weight
-        case title2
-        /// Title level 3 - 18px, SemiBold weight
-        case title3
-        /// Title level 4 - 18px, Regular weight
-        case title4
-        /// Subheading - 18px, Bold weight
-        case headline
-        /// Bold subheading - 16px, SemiBold weight
-        case subheadiline
-        /// Body text - 16px, Regular weight - use for main content
-        case body
-        /// Body medium - 16px, Medium weight
-        case bodyMedium
-        /// Small body text - 14px, Medium weight
-        case bodySmall
-        /// Small body text - 14px, Regular weight
-        case bodySmallRegular
-        /// Caption text - 12px, Regular weight - use for secondary text
-        case caption
-        /// Small caption - 11px, Regular weight - use for helper text
-        case caption2
-        /// Caption 3 - 10px, Regular weight - use for helper text
-        case caption3
-        /// CaptionSemi - 12px, SemiBold weight - use for helper text
-        case captionSemi
-        /// Caption3Semi - 10px, SemiBold weight - use for helper text
-        case caption3Semi
-        
-        @MainActor
-        public var font: Font {
-            let typography = DesignSystem.theme.typography
+    func metrics(for style: DSTypography.Style) -> DSTextMetrics {
+        style.defaultMetrics
+    }
 
+    func uiFont(for style: DSTypography.Style) -> UIFont {
+        let metrics = metrics(for: style)
+        return uiFont(size: metrics.size, weight: metrics.weight)
+    }
+
+    func font(for style: DSTypography.Style) -> Font {
+        Font(uiFont(for: style))
+    }
+}
+
+// MARK: - System Typography
+/// The default: system font with the Figma metrics.
+public struct DSSystemTypography: DSTypographyScale {
+    public static let `default` = DSSystemTypography()
+
+    public init() {}
+}
+
+// MARK: - Custom Font Typography
+/// A bundled font family, resolved as `<family>-<Weight>` PostScript names
+/// (e.g. "Inter-SemiBold"). Falls back to the system font when a face is missing.
+public struct DSCustomFontTypography: DSTypographyScale {
+    public let family: String
+
+    public init(family: String) {
+        self.family = family
+    }
+
+    public func uiFont(size: CGFloat, weight: Font.Weight) -> UIFont {
+        UIFont(name: "\(family)-\(weight.postScriptSuffix)", size: size)
+            ?? .systemFont(ofSize: size, weight: weight.uiFontWeight)
+    }
+}
+
+// MARK: - Typography Styles
+public struct DSTypography {
+
+    /// The Figma type scale. Names match Figma's dev mode.
+    public enum Style: String, CaseIterable, Sendable {
+        /// Heading 1: 40px SemiBold
+        case heading1
+        /// Heading 2: 24px SemiBold
+        case heading2
+        /// Heading 3: 20px SemiBold
+        case heading3
+        /// Body Medium 16: 16px Medium
+        case bodyMedium
+        /// Body Regular 16: 16px Regular
+        case body
+        /// Body Medium 14: 14px Medium
+        case bodySmallMedium
+        /// Body Regular 14: 14px Regular
+        case bodySmall
+        /// Label: 12px Regular
+        case label
+
+        /// Metrics from Figma. Heading 1 uses a 48px line height; Figma's 20px would make
+        /// multi-line headings overlap.
+        public var defaultMetrics: DSTextMetrics {
             switch self {
-            case .largeTitle:
-                return typography.font(size: typography.largeTitle, weight: .heavy)
-            case .title:
-                return typography.font(size: typography.title, weight: .bold)
-            case .title1:
-                return typography.font(size: typography.title1, weight: .semibold)
-            case .title2:
-                return typography.font(size: typography.title2, weight: .semibold)
-            case .title3:
-                return typography.font(size: typography.title3, weight: .semibold)
-            case .title4:
-                return typography.font(size: typography.title3, weight: .semibold)
-            case .headline:
-                return typography.font(size: typography.headline, weight: .bold)
-            case .subheadiline:
-                return typography.font(size: typography.subheadline, weight: .semibold)
-            case .body:
-                return typography.font(size: typography.body, weight: .regular)
-            case .bodyMedium:
-                return typography.font(size: typography.bodyMedium, weight: .medium)
-            case .bodySmall:
-                return typography.font(size: typography.bodySmall, weight: .medium)
-            case .bodySmallRegular:
-                return typography.font(size: typography.bodySmall, weight: .regular)
-            case .caption:
-                return typography.font(size: typography.caption, weight: .regular)
-            case .caption2:
-                return typography.font(size: typography.caption2, weight: .regular)
-            case .caption3:
-                return typography.font(size: typography.caption3, weight: .regular)
-            case .caption3Semi:
-                return typography.font(size: typography.caption3, weight: .semibold)
-            case .captionSemi:
-                return typography.font(size: typography.caption, weight: .semibold)
+            case .heading1:        DSTextMetrics(size: 40, weight: .semibold, lineHeight: 48)
+            case .heading2:        DSTextMetrics(size: 24, weight: .semibold, lineHeight: 25)
+            case .heading3:        DSTextMetrics(size: 20, weight: .semibold, lineHeight: 20)
+            case .bodyMedium:      DSTextMetrics(size: 16, weight: .medium,   lineHeight: 25)
+            case .body:            DSTextMetrics(size: 16, weight: .regular,  lineHeight: 24)
+            case .bodySmallMedium: DSTextMetrics(size: 14, weight: .medium,   lineHeight: 20)
+            case .bodySmall:       DSTextMetrics(size: 14, weight: .regular,  lineHeight: 22)
+            case .label:           DSTextMetrics(size: 12, weight: .regular,  lineHeight: 20)
             }
         }
 
         @MainActor
-        var lineHeight: CGFloat {
-            let typography = DesignSystem.theme.typography
+        public var metrics: DSTextMetrics {
+            DesignSystem.theme.typography.metrics(for: self)
+        }
 
-            switch self {
-            case .largeTitle: return typography.largeTitle * 1.2
-            case .title, .title1: return typography.title1 * 1.2
-            case .title2: return typography.title2 * 1.3
-            case .title3, .title4: return typography.title3 * 1.25
-            case .headline, .subheadiline: return typography.headline * 1.3
-            case .body: return typography.body * 1.3
-            case .bodyMedium: return typography.bodyMedium * 1.3
-            case .bodySmall, .bodySmallRegular: return typography.bodySmall * 1.4
-            case .caption: return typography.caption * 1.3
-            case .caption2, .captionSemi: return typography.caption2 * 1.2
-            case .caption3, .caption3Semi: return typography.caption3 * 1.2
-            }
+        @MainActor
+        public var font: Font {
+            DesignSystem.theme.typography.font(for: self)
+        }
+
+        /// Extra spacing between lines so the rendered line height matches `metrics.lineHeight`.
+        @MainActor
+        var lineSpacing: CGFloat {
+            max(0, metrics.lineHeight - DesignSystem.theme.typography.uiFont(for: self).lineHeight)
         }
     }
 }
 
 // MARK: - View Extension for Typography
-/// View extension providing easy access to typography styles.
-/// Use .fontStyle() for quick font application, or typography() for full styling with color and line spacing.
 public extension View {
-    /// Apply a typography style to the view with font
-    /// - Parameter style: The DSTypography.Style to apply (e.g., .title, .body, .caption)
+    /// Apply a style's font, letter spacing and line height.
     ///
-    /// Usage:
     /// ```swift
     /// Text("Hello World")
-    ///     .fontStyle(.title)  // 24px, Bold weight
+    ///     .fontStyle(.heading2)
     /// ```
     @MainActor
     func fontStyle(_ style: DSTypography.Style) -> some View {
-        self.font(style.font)
+        self
+            .font(style.font)
+            .tracking(style.metrics.letterSpacing)
+            .lineSpacing(style.lineSpacing)
     }
 
-    /// Apply a typography style with full styling including color and line spacing.
-    /// Use this for comprehensive typography control with all design system properties.
-    /// - Parameters:
-    ///   - style: The DSTypography.Style to apply
-    ///   - color: Optional text color (defaults to Text.primary from design system)
+    /// Apply a style plus a text color (defaults to `Color.Text.primary`).
     ///
-    /// Usage:
     /// ```swift
     /// Text("Body text")
-    ///     .typography(.body, color: .red)
+    ///     .typography(.body, color: .Text.secondary)
     /// ```
     @MainActor
     func typography(_ style: DSTypography.Style, color: Color? = nil) -> some View {
-        let textColor = color ?? Color.Text.primary
-        return self
-            .font(style.font)
-            .lineSpacing(style.lineHeight - style.font.lineHeight)
-            .foregroundColor(textColor)
+        self
+            .fontStyle(style)
+            .foregroundColor(color ?? Color.Text.primary)
     }
 }
 
-// MARK: - Font Extension Helper
-/// Internal helper for calculating approximate line heights based on font metrics.
-/// Used internally by typography methods to ensure proper line spacing across all typography styles.
-private extension Font {
-    var lineHeight: CGFloat {
-        // Approximate line height based on font size - used for calculating proper line spacing
+// MARK: - Weight Mapping
+extension Font.Weight {
+    var uiFontWeight: UIFont.Weight {
         switch self {
-        case .largeTitle: return 34
-        case .title: return 28
-        case .title2: return 22
-        case .title3: return 20
-        case .headline: return 17
-        case .body: return 17
-        default: return 17
+        case .ultraLight: .ultraLight
+        case .thin:       .thin
+        case .light:      .light
+        case .medium:     .medium
+        case .semibold:   .semibold
+        case .bold:       .bold
+        case .heavy:      .heavy
+        case .black:      .black
+        default:          .regular
+        }
+    }
+
+    var postScriptSuffix: String {
+        switch self {
+        case .ultraLight: "ExtraLight"
+        case .thin:       "Thin"
+        case .light:      "Light"
+        case .medium:     "Medium"
+        case .semibold:   "SemiBold"
+        case .bold:       "Bold"
+        case .heavy:      "ExtraBold"
+        case .black:      "Black"
+        default:          "Regular"
         }
     }
 }

@@ -36,7 +36,7 @@ public struct DSDivider: View {
         self.axis = axis
         self.label = label
         self.thickness = thickness
-        self.color = color ?? Color.Border.default
+        self.color = color ?? Color.Border.subtle
     }
 
     // MARK: - Body
@@ -74,7 +74,7 @@ public struct DSDivider: View {
                     .fill(color)
                     .frame(height: thickness)
 
-                DSText(label!, style: .caption, color: .Text.tertiary)
+                DSText(label!, style: .label, color: .Text.tertiary)
 
                 Rectangle()
                     .fill(color)
@@ -86,7 +86,7 @@ public struct DSDivider: View {
                     .fill(color)
                     .frame(width: thickness)
 
-                DSText(label!, style: .caption, color: .Text.tertiary)
+                DSText(label!, style: .label, color: .Text.tertiary)
                     .rotationEffect(.degrees(-90))
 
                 Rectangle()

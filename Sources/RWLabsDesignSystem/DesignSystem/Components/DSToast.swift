@@ -1,19 +1,22 @@
 //
 //  DSToast.swift
-//  ThirtyPlusPanel
+//  RWLabsDesignSystem
 //
-//  Created by Raunak Joneja on 29/03/26.
+//  Top toast with an icon, title, message and close button. There is no Figma design; it uses
+//  the option dropdown's raised card (surface, 16pt corners, soft shadow) and the Figma type scale.
+//
+//  content.toast(isShowing: $saved, type: .success, title: "Saved", message: "Your profile is updated")
 //
 
 import SwiftUI
 
-// MARK: - DSToast Component
+// MARK: - DSToast
 public struct DSToast: View {
     let type: DSToastType
-    var title: String?
+    let title: String?
     let message: String?
     @Binding var isShowing: Bool
-    var onClose:() -> Void = { }
+    let onClose: () -> Void
 
     public init(
         type: DSToastType,
@@ -33,33 +36,46 @@ public struct DSToast: View {
         if isShowing {
             HStack(spacing: .sm) {
                 Image(systemName: type.icon)
+                    .font(.system(size: 20))
                     .foregroundColor(type.color)
-                    .font(.system(size: 16))
-                VStack(alignment: .leading, spacing: .s0) {
+
+                VStack(alignment: .leading, spacing: .xxs) {
                     if let title {
-                        DSText(title, style: .subheadiline, color: .Text.primary)
-                            .padding(.bottom, .s2)
+                        Text(title)
+                            .fontStyle(.bodyMedium)
+                            .foregroundColor(.Text.primary)
                     }
                     if let message {
-                        DSText(message, style: .bodySmall, color: .Text.secondary)
+                        Text(message)
+                            .fontStyle(.bodySmall)
+                            .foregroundColor(.Text.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-                Spacer()
-
-                Button(action: { isShowing = false; onClose() }) {
+                Button {
+                    withAnimation { isShowing = false }
+                    onClose()
+                } label: {
                     Image(systemName: "xmark")
-                        .foregroundColor(Color.Text.tertiary)
-                        .font(.system(size: 12))
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.Input.icon)
+                        .frame(width: 24, height: 24)
+                        .contentShape(Rectangle().inset(by: -10))
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Close")
             }
-            .padding(.md)
-            .background(Color.Background.primary)
-            .cornerRadius(.md)
-            .shadow(.md)
+            .padding(.horizontal, .md)
+            .padding(.vertical, .sm)
+            .background(
+                RoundedRectangle(cornerRadius: .radiusLG)
+                    .fill(DSOptionDropdown.surface)
+                    .shadow(color: .black.opacity(0.25), radius: 9)
+            )
+            .accessibilityElement(children: .combine)
             .transition(.move(edge: .top).combined(with: .opacity))
-            .animation(.spring(), value: isShowing)
         }
     }
 }
@@ -71,37 +87,28 @@ public struct ToastModifier: ViewModifier {
     let title: String?
     let message: String?
     let duration: TimeInterval
-    let onClose:() -> Void
+    let onClose: () -> Void
 
     public func body(content: Content) -> some View {
-        if #available(iOS 17.0, *) {
-            ZStack {
-                content
-                
-                VStack {
-                    DSToast(type: type, title: title,  message: message, isShowing: $isShowing)
-                        .padding(.horizontal, .md)
-                        .padding(.top, .md)
-                    Spacer()
-                }
+        content
+            .overlay(alignment: .top) {
+                DSToast(type: type, title: title, message: message, isShowing: $isShowing, onClose: onClose)
+                    .padding(.horizontal, .md)
+                    .padding(.top, .md)
             }
-            .onChange(of: isShowing) { _, newValue in
-                if newValue {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-                        withAnimation {
-                            isShowing = false
-                            onClose()
-                        }
-                    }
-                }
+            .animation(.spring(duration: 0.35), value: isShowing)
+            .task(id: isShowing) {
+                // Restarts whenever the toast reappears; cancelled if it is closed early
+                guard isShowing else { return }
+                try? await Task.sleep(for: .seconds(duration))
+                guard !Task.isCancelled else { return }
+                isShowing = false
+                onClose()
             }
-        } else {
-            // Fallback on earlier versions
-        }
     }
 }
 
-// MARK: - View Extension for Toast
+// MARK: - View Extension
 public extension View {
     func toast(
         isShowing: Binding<Bool>,
@@ -111,34 +118,50 @@ public extension View {
         duration: TimeInterval = 3.0,
         onClose: @escaping () -> Void = {}
     ) -> some View {
-        self.modifier(
-            ToastModifier(
-                isShowing: isShowing,
-                type: type,
-                title: title,
-                message: message,
-                duration: duration,
-                onClose: onClose
-            )
-        )
+        modifier(ToastModifier(
+            isShowing: isShowing,
+            type: type,
+            title: title,
+            message: message,
+            duration: duration,
+            onClose: onClose
+        ))
     }
 }
 
 // MARK: - Preview
-struct DSToast_Previews: PreviewProvider {
-    static var previews: some View {
-        VStack(spacing: .sm) {
-            // Toast example in a separate view would need state management
-            DSText("Toast appears at the top with auto-dismiss", style: .caption, color: .Text.tertiary)
-                .toast(isShowing: .constant(true), type: .success, title: "Test", message: "Toast appears at the top with auto-dismiss")
-            DSText("Toast appears at the top with auto-dismiss", style: .caption, color: .Text.tertiary)
-                .toast(isShowing: .constant(true), type: .error, message: "Test")
-            DSText("Toast appears at the top with auto-dismiss", style: .caption, color: .Text.tertiary)
-                .toast(isShowing: .constant(true), type: .warning, message: "Test")
+private struct DSToastGallery: View {
+    @State private var isShowing = false
 
-            DSText("Toast appears at the top with auto-dismiss", style: .caption, color: .Text.tertiary)
-                .toast(isShowing: .constant(true), type: .info, message: "Test")
+    var body: some View {
+        VStack(spacing: .sm) {
+            DSToast(type: .success, title: "Saved", message: "Your profile is updated", isShowing: .constant(true))
+            DSToast(type: .error, title: nil, message: "Something went wrong. Try again.", isShowing: .constant(true))
+            DSToast(type: .warning, title: "Heads up", message: nil, isShowing: .constant(true))
+            DSToast(type: .info, title: "New feature", message: "You can now add up to 6 photos", isShowing: .constant(true))
+
+            Button("Show toast") { isShowing = true }
+                .primaryButtonStyle(size: .medium)
+                .padding(.top, .lg)
         }
         .padding()
+        .frame(maxHeight: .infinity, alignment: .top)
+        .background(Color.Background.primary)
+        .toast(isShowing: $isShowing, type: .success, title: "Saved", message: "Auto-dismisses after 3 seconds")
     }
+}
+
+#Preview("RWLabs") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSToastGallery().designSystem()
+}
+
+#Preview("RWLabs Dark") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSToastGallery().designSystem().preferredColorScheme(.dark)
+}
+
+#Preview("BW") {
+    DesignSystem.configure(theme: BWTheme())
+    return DSToastGallery().designSystem()
 }

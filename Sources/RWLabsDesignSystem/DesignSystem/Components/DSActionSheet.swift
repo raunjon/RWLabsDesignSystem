@@ -34,11 +34,11 @@ public struct DSActionSheet: View {
             if title != nil || message != nil {
                 VStack(spacing: .xs) {
                     if let title = title {
-                        DSText(title, style: .headline, color: .Text.primary)
+                        DSText(title, style: .heading3, color: .Text.primary)
                     }
 
                     if let message = message {
-                        DSText(message, style: .bodySmall, color: .Text.secondary)
+                        DSText(message, style: .bodySmallMedium, color: .Text.secondary)
                             .multilineTextAlignment(.center)
                     }
                 }
@@ -101,7 +101,7 @@ public struct DSActionSheet: View {
                 }
             }
         }
-        .cornerRadius(.radiusLG)
+        .cornerRadius(.radiusMD)
         .shadow(.sm)
     }
 

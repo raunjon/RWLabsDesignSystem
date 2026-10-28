@@ -25,7 +25,7 @@ public struct DSRadio: View {
             ZStack {
                 Circle()
                     .strokeBorder(
-                        Color.Border.default,
+                        Color.Border.subtle,
                         lineWidth: 2
                     )
                     .background(

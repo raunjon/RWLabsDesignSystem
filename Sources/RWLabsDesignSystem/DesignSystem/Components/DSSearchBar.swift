@@ -131,7 +131,7 @@ public struct DSSearchBarWithFilters: View {
                                     selectedFilter = filter
                                 }
                             }) {
-                                DSText(filter, style: .bodySmall, color: selectedFilter == filter ? .Background.primary : .Text.primary)
+                                DSText(filter, style: .bodySmallMedium, color: selectedFilter == filter ? .Background.primary : .Text.primary)
                                     .padding(.horizontal, .sm)
                                     .padding(.vertical, .xs)
                                     .background(
@@ -165,7 +165,7 @@ public struct DSSearchBarWithFilters: View {
                 )
 
                 if !searchText.isEmpty {
-                    DSText("Searching for: \"\(searchText)\"", style: .caption, color: .Text.secondary)
+                    DSText("Searching for: \"\(searchText)\"", style: .label, color: .Text.secondary)
                 }
 
                 Spacer()
@@ -197,11 +197,11 @@ public struct DSSearchBarWithFilters: View {
 
                 VStack(alignment: .leading, spacing: .xs) {
                     if !searchText.isEmpty {
-                        DSText("Query: \"\(searchText)\"", style: .bodySmall, color: .Text.secondary)
+                        DSText("Query: \"\(searchText)\"", style: .bodySmallMedium, color: .Text.secondary)
                     }
 
                     if let filter = selectedFilter {
-                        DSText("Filter: \(filter)", style: .bodySmall, color: .Text.secondary)
+                        DSText("Filter: \(filter)", style: .bodySmallMedium, color: .Text.secondary)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -249,7 +249,7 @@ public struct DSSearchBarWithFilters: View {
                             .font(.system(size: 48))
                             .foregroundColor(Color.Text.tertiary)
 
-                        DSText("No results found", style: .headline, color: .Text.primary)
+                        DSText("No results found", style: .heading3, color: .Text.primary)
 
                         Spacer()
                     }

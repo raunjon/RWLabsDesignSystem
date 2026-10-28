@@ -1,294 +1,282 @@
 //
 //  DSMenu.swift
-//  RWLDesignSystem
+//  RWLabsDesignSystem
 //
-//  Context menu and dropdown menu component
+//  Action menu matching the Figma "Option dropdown": a surface card with 12pt rows, each an
+//  optional 16pt icon and a 12px label; destructive rows in the error color.
+//
+//  DSMenu(items: [
+//      .init(title: "Select", icon: Image(systemName: "checkmark.square")) { … },
+//      .init(title: "Delete", icon: Image(systemName: "trash"), role: .destructive) { … },
+//  ]) {
+//      Image(systemName: "ellipsis")
+//  }
+//
+//  Presentation: .dropdown shows the Figma card in a popover; .system uses the iOS menu.
 //
 
 import SwiftUI
 
-// MARK: - DSMenu
+// MARK: - Menu Item
+public enum DSMenuRole: Sendable {
+    case `default`
+    case destructive
+}
 
-public struct DSMenu<Label: View>: View {
-    let items: [MenuItem]
-    let label: () -> Label
+public struct DSMenuItem {
+    public let title: String
+    public let icon: Image?
+    public let role: DSMenuRole
+    public let isDisabled: Bool
+    public let isSelected: Bool
+    public let isDivider: Bool
+    public let submenu: [DSMenuItem]?
+    public let action: (() -> Void)?
 
     public init(
-        items: [MenuItem],
-        @ViewBuilder label: @escaping () -> Label
+        title: String,
+        icon: Image? = nil,
+        role: DSMenuRole = .default,
+        isDisabled: Bool = false,
+        isSelected: Bool = false,
+        submenu: [DSMenuItem]? = nil,
+        action: (() -> Void)? = nil
     ) {
+        self.title = title
+        self.icon = icon
+        self.role = role
+        self.isDisabled = isDisabled
+        self.isSelected = isSelected
+        self.isDivider = false
+        self.submenu = submenu
+        self.action = action
+    }
+
+    public static var divider: DSMenuItem {
+        DSMenuItem(divider: ())
+    }
+
+    private init(divider: Void) {
+        self.title = ""
+        self.icon = nil
+        self.role = .default
+        self.isDisabled = false
+        self.isSelected = false
+        self.isDivider = true
+        self.submenu = nil
+        self.action = nil
+    }
+}
+
+public enum DSMenuPresentation: Sendable {
+    /// Figma option dropdown card in a popover
+    case dropdown
+    /// Native iOS menu
+    case system
+}
+
+// MARK: - Option Dropdown
+/// The Figma option dropdown card. Submenus show as a header with their items indented.
+public struct DSOptionDropdown: View {
+    /// Raised one step in dark mode so the card separates from the page.
+    @MainActor static var surface: Color {
+        Color(light: Color.Selection.surface, dark: Color.Selection.surfaceSelected)
+    }
+
+    let items: [DSMenuItem]
+    let onSelect: (DSMenuItem) -> Void
+
+    public init(items: [DSMenuItem], onSelect: @escaping (DSMenuItem) -> Void = { $0.action?() }) {
         self.items = items
-        self.label = label
+        self.onSelect = onSelect
     }
 
     public var body: some View {
-        Menu {
-            ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-                menuButton(for: item)
-            }
-        } label: {
-            label()
+        VStack(alignment: .leading, spacing: .sm) {
+            rows(items, indent: 0)
         }
+        .padding(.sm)
+        .fixedSize()
+        .background(
+            RoundedRectangle(cornerRadius: .radiusLG)
+                .fill(Self.surface)
+                .shadow(color: .black.opacity(0.25), radius: 9)
+        )
     }
 
-    @ViewBuilder
-    private func menuButton(for item: MenuItem) -> AnyView {
-        AnyView(ZStack {
-            if let submenu = item.submenu {
-                AnyView(
-                    Menu {
-                        ForEach(Array(submenu.enumerated()), id: \.offset) { _, subItem in
-                            menuButton(for: subItem)
-                        }
-                    } label: {
-                        itemLabel(for: item)
-                    }
-                )
-            } else if item.isDivider {
-                AnyView(Divider())
+    private func rows(_ items: [DSMenuItem], indent: CGFloat) -> AnyView {
+        AnyView(ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+            if item.isDivider {
+                Rectangle()
+                    .fill(Color.Selection.border)
+                    .frame(height: .thin)
+            } else if let submenu = item.submenu {
+                row(item, isHeader: true).padding(.leading, indent)
+                rows(submenu, indent: indent + .md)
             } else {
-                AnyView(
-                    Button(role: item.role == .destructive ? .destructive : nil, action: {
-                        item.action?()
-                    }) {
-                        itemLabel(for: item)
-                    }
-                        .disabled(item.isDisabled)
-                )
+                Button { onSelect(item) } label: {
+                    row(item, isHeader: false)
+                }
+                .buttonStyle(.plain)
+                .disabled(item.isDisabled)
+                .opacity(item.isDisabled ? 0.5 : 1)
+                .padding(.leading, indent)
             }
         })
     }
 
-    @ViewBuilder
-    private func itemLabel(for item: MenuItem) -> some View {
-        HStack {
+    private func row(_ item: DSMenuItem, isHeader: Bool) -> some View {
+        let color: Color = item.role == .destructive ? .Semantic.error : .Text.primary
+        return HStack(spacing: .xs) {
             if let icon = item.icon {
                 icon
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 16, height: 16)
             }
-
             Text(item.title)
-
+                .fontStyle(isHeader ? .bodySmallMedium : .label)
             if item.isSelected {
-                Spacer()
+                Spacer(minLength: .xs)
                 Image(systemName: "checkmark")
+                    .font(.system(size: 12, weight: .semibold))
+            }
+        }
+        .foregroundColor(color)
+        .frame(minWidth: 80, alignment: .leading)
+        .contentShape(Rectangle())
+    }
+}
+
+// MARK: - DSMenu
+public struct DSMenu<Label: View>: View {
+    public typealias MenuItem = DSMenuItem
+    public typealias MenuRole = DSMenuRole
+
+    let items: [DSMenuItem]
+    let presentation: DSMenuPresentation
+    let label: () -> Label
+
+    @State private var isOpen = false
+
+    public init(
+        items: [DSMenuItem],
+        presentation: DSMenuPresentation = .dropdown,
+        @ViewBuilder label: @escaping () -> Label
+    ) {
+        self.items = items
+        self.presentation = presentation
+        self.label = label
+    }
+
+    public var body: some View {
+        switch presentation {
+        case .dropdown:
+            Button { isOpen = true } label: { label() }
+                .buttonStyle(.plain)
+                .popover(isPresented: $isOpen, arrowEdge: .top) {
+                    DSOptionDropdown(items: items) { item in
+                        isOpen = false
+                        item.action?()
+                    }
+                    .presentationCompactAdaptation(.popover)
+                    .presentationBackground(DSOptionDropdown.surface)
+                }
+        case .system:
+            Menu {
+                DSSystemMenuItems(items: items)
+            } label: {
+                label()
+            }
+        }
+    }
+}
+
+// MARK: - System Menu Items
+/// The items as native menu buttons; shared by `.system` menus and `dsContextMenu`.
+private struct DSSystemMenuItems: View {
+    let items: [DSMenuItem]
+
+    var body: some View {
+        ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+            if item.isDivider {
+                Divider()
+            } else if let submenu = item.submenu {
+                Menu {
+                    DSSystemMenuItems(items: submenu)
+                } label: {
+                    itemLabel(item)
+                }
+            } else {
+                Button(role: item.role == .destructive ? .destructive : nil) {
+                    item.action?()
+                } label: {
+                    itemLabel(item)
+                }
+                .disabled(item.isDisabled)
             }
         }
     }
 
-    public struct MenuItem {
-        public let title: String
-        public let icon: Image?
-        public let role: MenuRole
-        public let isDisabled: Bool
-        public let isSelected: Bool
-        public let isDivider: Bool
-        public let submenu: [MenuItem]?
-        public let action: (() -> Void)?
-
-        public init(
-            title: String,
-            icon: Image? = nil,
-            role: MenuRole = .default,
-            isDisabled: Bool = false,
-            isSelected: Bool = false,
-            submenu: [MenuItem]? = nil,
-            action: (() -> Void)? = nil
-        ) {
-            self.title = title
-            self.icon = icon
-            self.role = role
-            self.isDisabled = isDisabled
-            self.isSelected = isSelected
-            self.isDivider = false
-            self.submenu = submenu
-            self.action = action
+    @ViewBuilder
+    private func itemLabel(_ item: DSMenuItem) -> some View {
+        if item.isSelected {
+            SwiftUI.Label(item.title, systemImage: "checkmark")
+        } else if let icon = item.icon {
+            SwiftUI.Label { Text(item.title) } icon: { icon }
+        } else {
+            Text(item.title)
         }
-
-        public static var divider: MenuItem {
-            MenuItem(title: "", isDivider: true, action: nil)
-        }
-
-        private init(title: String, isDivider: Bool, action: (() -> Void)?) {
-            self.title = title
-            self.icon = nil
-            self.role = .default
-            self.isDisabled = false
-            self.isSelected = false
-            self.isDivider = isDivider
-            self.submenu = nil
-            self.action = action
-        }
-    }
-
-    public enum MenuRole {
-        case `default`
-        case destructive
     }
 }
 
 // MARK: - Context Menu Modifier
-
 public extension View {
-    func dsContextMenu(items: [DSMenu<AnyView>.MenuItem]) -> some View {
-        self.contextMenu { 
-            ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-                if item.isDivider {
-                    Divider()
-                } else if let submenu = item.submenu {
-                    Menu {
-                        ForEach(Array(submenu.enumerated()), id: \.offset) { _, subItem in
-                            Button(action: {
-                                subItem.action?()
-                            }) {
-                                HStack {
-                                    if let icon = subItem.icon {
-                                        icon
-                                    }
-                                    Text(subItem.title)
-                                }
-                            }
-                        }
-                    } label: {
-                        HStack {
-                            if let icon = item.icon {
-                                icon
-                            }
-                            Text(item.title)
-                        }
-                    }
-                } else {
-                    Button(role: item.role == .destructive ? .destructive : nil, action: {
-                        item.action?()
-                    }) {
-                        HStack {
-                            if let icon = item.icon {
-                                icon
-                            }
-                            Text(item.title)
-                        }
-                    }
-                    .disabled(item.isDisabled)
-                }
-            }
-        }
+    /// Long-press menu with the same items. Context menus are always native.
+    func dsContextMenu(items: [DSMenuItem]) -> some View {
+        contextMenu { DSSystemMenuItems(items: items) }
     }
 }
 
 // MARK: - Preview
+/// Mirrors the Figma Option dropdown, then a live menu in both presentations.
+private struct DSMenuGallery: View {
+    private let items: [DSMenuItem] = [
+        .init(title: "Label", icon: Image(systemName: "checkmark.square")),
+        .init(title: "Label", icon: Image(systemName: "trash"), role: .destructive),
+        .init(title: "Label", icon: Image(systemName: "plus.square"))
+    ]
 
-#Preview("Basic Menu") {
-    struct PreviewWrapper: View {
-        @State private var sortOrder = "Name"
+    var body: some View {
+        VStack(spacing: .xl) {
+            DSOptionDropdown(items: items)
 
-        var body: some View {
-            VStack(spacing: .xl) {
-                DSMenu(items: [
-                    .init(
-                        title: "Edit",
-                        icon: Image(systemName: "pencil"),
-                        action: { print("Edit") }
-                    ),
-                    .init(
-                        title: "Duplicate",
-                        icon: Image(systemName: "doc.on.doc"),
-                        action: { print("Duplicate") }
-                    ),
-                    .divider,
-                    .init(
-                        title: "Delete",
-                        icon: Image(systemName: "trash"),
-                        role: .destructive,
-                        action: { print("Delete") }
-                    )
-                ]) {
-                    DSButton(title: "Actions", variant: .outline) {}
+            HStack(spacing: .lg) {
+                DSMenu(items: items) {
+                    Image(systemName: "ellipsis.circle").font(.title2).foregroundColor(.Icon.secondary)
                 }
-
-                DSText("Selected: \(sortOrder)", style: .caption, color: .Text.secondary)
-
-                Spacer()
-            }
-            .padding()
-        }
-    }
-
-    return PreviewWrapper()
-}
-
-#Preview("Menu with Submenu") {
-    VStack(spacing: .xl) {
-        DSMenu(items: [
-            .init(
-                title: "Sort By",
-                icon: Image(systemName: "arrow.up.arrow.down"),
-                submenu: [
-                    .init(title: "Name", isSelected: true, action: { print("Sort by Name") }),
-                    .init(title: "Date", action: { print("Sort by Date") }),
-                    .init(title: "Size", action: { print("Sort by Size") })
-                ]
-            ),
-            .init(
-                title: "Filter",
-                icon: Image(systemName: "line.3.horizontal.decrease.circle"),
-                submenu: [
-                    .init(title: "All", action: { print("All") }),
-                    .init(title: "Active", action: { print("Active") }),
-                    .init(title: "Completed", action: { print("Completed") })
-                ]
-            ),
-            .divider,
-            .init(
-                title: "Share",
-                icon: Image(systemName: "square.and.arrow.up"),
-                action: { print("Share") }
-            )
-        ]) {
-            DSButton(title: "More Options", variant: .secondary) {}
-        }
-
-        Spacer()
-    }
-    .padding()
-}
-
-#Preview("Context Menu") {
-    struct PreviewWrapper: View {
-        var body: some View {
-            VStack(spacing: .xl) {
-                DSCard(elevation: .medium) {
-                    VStack(alignment: .leading, spacing: .sm) {
-                        DSText("Long Press Me", style: .headline, color: .Text.primary)
-                        DSText("Or right-click on macOS", style: .bodySmall, color: .Text.secondary)
-                    }
+                DSMenu(items: items, presentation: .system) {
+                    Text("System menu").fontStyle(.bodySmallMedium).foregroundColor(.Text.primary)
                 }
-                .dsContextMenu(items: [
-                    .init(
-                        title: "Copy",
-                        icon: Image(systemName: "doc.on.doc"),
-                        action: { print("Copy") }
-                    ),
-                    .init(
-                        title: "Share",
-                        icon: Image(systemName: "square.and.arrow.up"),
-                        action: { print("Share") }
-                    ),
-                    .divider,
-                    .init(
-                        title: "Delete",
-                        icon: Image(systemName: "trash"),
-                        role: .destructive,
-                        action: { print("Delete") }
-                    )
-                ])
-
-                DSText("Long press or right-click the card above", style: .caption, color: .Text.secondary)
-
-                Spacer()
             }
-            .padding()
         }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.Background.primary)
     }
-
-    return PreviewWrapper()
 }
 
+#Preview("RWLabs") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSMenuGallery().designSystem()
+}
+
+#Preview("RWLabs Dark") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSMenuGallery().designSystem().preferredColorScheme(.dark)
+}
+
+#Preview("BW") {
+    DesignSystem.configure(theme: BWTheme())
+    return DSMenuGallery().designSystem()
+}

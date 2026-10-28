@@ -30,16 +30,16 @@ public struct DSBanner: View {
         HStack(spacing: .md) {
             Image(systemName: type.icon)
                 .foregroundColor(type.color)
-                .fontStyle(.title3)
+                .fontStyle(.heading3)
 
-            DSText(message, style: .bodyMedium, color: .Text.primary)
+            DSText(message, style: .bodySmallMedium, color: .Text.primary)
                 .lineLimit(2)
 
             Spacer()
 
             if let actionTitle = actionTitle, let action = action {
                 Button(action: action) {
-                    DSText(actionTitle, style: .bodySmall, color: type.color)
+                    DSText(actionTitle, style: .bodySmallMedium, color: type.color)
                         .fontWeight(.semibold)
                 }
             }

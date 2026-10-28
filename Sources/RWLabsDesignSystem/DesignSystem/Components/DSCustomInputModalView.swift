@@ -233,7 +233,7 @@ public struct DSCustomInputModalView: View {
             VStack(spacing: .sm) {
                 // Title
                 if let title = title {
-                    DSText(title, style: .title2, color: Color.Text.primary)
+                    DSText(title, style: .heading3, color: Color.Text.primary)
                         .multilineTextAlignment(.center)
                         .padding(.top, .md)
                         .padding(.horizontal, .lg)
@@ -241,7 +241,7 @@ public struct DSCustomInputModalView: View {
 
                 // Subtitle
                 if let subtitle = subtitle {
-                    DSText(subtitle, style: .bodyMedium, color: Color.Text.secondary)
+                    DSText(subtitle, style: .bodySmallMedium, color: Color.Text.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.top, .xxs)
                         .padding(.horizontal, .lg)
@@ -356,9 +356,9 @@ private struct DSCustomInputView: View {
             VStack(alignment: .leading, spacing: .xs) {
                 if let label = config.label {
                     HStack {
-                        DSText(label, style: .bodyMedium, color: Color.Text.primary)
+                        DSText(label, style: .bodySmallMedium, color: Color.Text.primary)
                         Spacer()
-                        DSText(String(format: "%.1f", config.value), style: .bodyMedium, color: Color.Text.secondary)
+                        DSText(String(format: "%.1f", config.value), style: .bodySmallMedium, color: Color.Text.secondary)
                     }
                 }
 
@@ -371,7 +371,7 @@ private struct DSCustomInputView: View {
 
         case .stepper(let config):
             HStack {
-                DSText(config.label, style: .bodyMedium, color: Color.Text.primary)
+                DSText(config.label, style: .bodySmallMedium, color: Color.Text.primary)
 
                 Spacer()
 
@@ -406,7 +406,7 @@ private struct DSCustomInputActionButton: View {
         case .secondary:
             DSButton(
                 title: config.title,
-                variant: .outline,
+                variant: .tertiary,
                 size: .small,
                 isLoading: config.isLoading,
                 isDisabled: config.isDisabled
@@ -417,7 +417,7 @@ private struct DSCustomInputActionButton: View {
         case .cancel:
             DSButton(
                 title: config.title,
-                variant: config.isDestructive ? .destructive : .outline,
+                variant: config.isDestructive ? .destructive : .tertiary,
                 size: .small,
                 isLoading: config.isLoading,
                 isDisabled: config.isDisabled

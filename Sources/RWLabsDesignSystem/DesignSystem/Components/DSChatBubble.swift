@@ -159,7 +159,7 @@ public struct DSChatBubble: View {
                     if timestamp != nil || status != nil {
                         HStack(spacing: .xxs) {
                             if let timestamp = timestamp {
-                                DSText(timestamp, style: .caption2, color: variant.timestampColor)
+                                DSText(timestamp, style: .label, color: variant.timestampColor)
                             }
 
                             if let status = status, variant == .sender {
@@ -217,7 +217,7 @@ public struct DSChatBubble: View {
                 .fill(Color.Icon.brand)
                 .frame(width: 32, height: 32)
                 .overlay(
-                    DSText(avatarInitials ?? "", style: .bodyMedium, color: Color.Icon.brandAccent)
+                    DSText(avatarInitials ?? "", style: .bodySmallMedium, color: Color.Icon.brandAccent)
                 ))
         } else {
             AnyView(placeholderView)
@@ -230,7 +230,7 @@ public struct DSChatBubble: View {
             .frame(width: 32, height: 32)
             .overlay(
                 Image(systemName: "person.fill")
-                    .fontStyle(.bodyMedium)
+                    .fontStyle(.bodySmallMedium)
                     .foregroundColor(Color.Background.secondaryInverse)
             )
     }
@@ -349,7 +349,7 @@ public struct DSChatMediaBubble: View {
 
                     // Caption
                     if let caption = caption {
-                        DSText(caption, style: .bodySmall, color: variant.textColor)
+                        DSText(caption, style: .bodySmallMedium, color: variant.textColor)
                             .padding(.horizontal, .xs)
                     }
 
@@ -357,7 +357,7 @@ public struct DSChatMediaBubble: View {
                     if timestamp != nil || status != nil {
                         HStack(spacing: .xxs) {
                             if let timestamp = timestamp {
-                                DSText(timestamp, style: .caption2, color: variant.timestampColor)
+                                DSText(timestamp, style: .label, color: variant.timestampColor)
                             }
 
                             if let status = status, variant == .sender {
@@ -396,7 +396,7 @@ public struct DSChatMediaBubble: View {
                 .fill(Color.Background.brandInverse)
                 .frame(width: 32, height: 32)
                 .overlay(
-                    DSText(avatarInitials, style: .caption, color: Color.Text.brand)
+                    DSText(avatarInitials, style: .label, color: Color.Text.brand)
                 )
         } else {
             Circle()

@@ -43,7 +43,7 @@ public struct DSTabBar: View {
         .background(style.backgroundColor)
         .overlay(
             Rectangle()
-                .fill(Color.Border.default)
+                .fill(Color.Border.subtle)
                 .frame(height: 0.5),
             alignment: .top
         )
@@ -115,7 +115,7 @@ private struct TabBarButton: View {
 
                     // Badge
                     if let badge = item.badge, badge > 0 {
-                        DSText(badge > 99 ? "99+" : "\(badge)", style: .caption3Semi, color: Color.Background.primary)
+                        DSText(badge > 99 ? "99+" : "\(badge)", style: .label, color: Color.Background.primary)
                             .padding(.horizontal, 4)
                             .padding(.vertical, 2)
                             .background(Color.Icon.brandSecondary)
@@ -126,7 +126,7 @@ private struct TabBarButton: View {
 
                 // Title
                 if style.showTitle {
-                    DSText(item.title, style: isSelected ? .caption3Semi : .caption3, color: isSelected ? .Icon.brand : .Icon.secondary)
+                    DSText(item.title, style: isSelected ? .label : .label, color: isSelected ? .Icon.brand : .Icon.secondary)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -302,7 +302,7 @@ private struct ContentPlaceholder: View {
                 .font(.system(size: 64))
                 .foregroundColor(Color.Icon.brand)
 
-            DSText(title, style: .title, color: Color.Text.primary)
+            DSText(title, style: .heading2, color: Color.Text.primary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.Background.secondary)

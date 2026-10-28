@@ -1,45 +1,15 @@
 //
 //  DSTextField.swift
-//  RWLDesignSystem
+//  RWLabsDesignSystem
 //
-//  Design system text field component
+//  Ready-made text field and text area, built on DSInputField (see DSInputField.swift).
 //
 
 import SwiftUI
 
-// MARK: - TextField State
-public enum DSTextFieldState {
-    case `default`
-    case focused
-    case error
-    case disabled
-
-    @MainActor
-    var borderColor: Color {
-        switch self {
-        case .default:
-            return Color.Border.default
-        case .focused:
-            return Color.Border.focused
-        case .error:
-            return Color.Border.error
-        case .disabled:
-            return Color.Border.disabled
-        }
-    }
-
-    @MainActor
-    var backgroundColor: Color {
-        switch self {
-        case .disabled:
-            return Color.Background.secondary
-        default:
-            return Color.Background.primary
-        }
-    }
-}
-
 // MARK: - DSTextField Component
+/// Convenience field with title, placeholder, helper/error text and a clear button,
+/// built on `DSInputField` and `dsInputFieldStyle`.
 public struct DSTextField: View {
     @Binding var text: String
     @FocusState private var isFocused: Bool
@@ -55,6 +25,8 @@ public struct DSTextField: View {
     let textContentType: UITextContentType?
     let autocapitalization: UITextAutocapitalizationType
     let trailingIcon: AnyView?
+    let size: DSInputFieldSize
+    let showsClearButton: Bool
 
     init(
         _ text: Binding<String>,
@@ -68,11 +40,13 @@ public struct DSTextField: View {
         keyboardType: UIKeyboardType = .default,
         textContentType: UITextContentType? = nil,
         autocapitalization: UITextAutocapitalizationType = .sentences,
-        trailingIcon: AnyView? = nil
+        trailingIcon: AnyView? = nil,
+        size: DSInputFieldSize = .large,
+        showsClearButton: Bool = true
     ) {
-        self.init(text:text, label: label, placeholder: placeholder, helperText: helperText, errorMessage: errorMessage, isDisabled: isDisabled, isSecure: isSecure, icon: icon, keyboardType: keyboardType, textContentType: textContentType, autocapitalization: autocapitalization, trailingIcon: trailingIcon)
+        self.init(text: text, label: label, placeholder: placeholder, helperText: helperText, errorMessage: errorMessage, isDisabled: isDisabled, isSecure: isSecure, icon: icon, keyboardType: keyboardType, textContentType: textContentType, autocapitalization: autocapitalization, trailingIcon: trailingIcon, size: size, showsClearButton: showsClearButton)
     }
-    
+
     public init(
         text: Binding<String>,
         label: String? = nil,
@@ -85,7 +59,9 @@ public struct DSTextField: View {
         keyboardType: UIKeyboardType = .default,
         textContentType: UITextContentType? = nil,
         autocapitalization: UITextAutocapitalizationType = .sentences,
-        trailingIcon: AnyView? = nil
+        trailingIcon: AnyView? = nil,
+        size: DSInputFieldSize = .large,
+        showsClearButton: Bool = true
     ) {
         self._text = text
         self.label = label
@@ -99,82 +75,66 @@ public struct DSTextField: View {
         self.textContentType = textContentType
         self.autocapitalization = autocapitalization
         self.trailingIcon = trailingIcon
+        self.size = size
+        self.showsClearButton = showsClearButton
     }
 
-    private var currentState: DSTextFieldState {
-        if isDisabled {
-            return .disabled
-        } else if errorMessage != nil {
-            return .error
-        } else if isFocused {
-            return .focused
-        } else {
-            return .default
+    private var capitalization: TextInputAutocapitalization {
+        switch autocapitalization {
+        case .none:          .never
+        case .words:         .words
+        case .allCharacters: .characters
+        default:             .sentences
         }
     }
 
-    public var body: some View {
-        VStack(alignment: .leading, spacing: .xs) {
-            // Label
-            if let label = label {
-                DSText(label, style: .bodySmall, color: Color.Text.secondary)
-            }
+    private var prompt: Text {
+        Text(placeholder).foregroundColor(.Input.placeholder)
+    }
 
-            // Input Field
-            HStack(spacing: .sm) {
-                if let icon = icon {
+    public var body: some View {
+        DSInputField(
+            title: label,
+            helper: errorMessage ?? helperText,
+            size: size,
+            status: errorMessage != nil ? .error : .normal,
+            isFocused: isFocused
+        ) {
+            HStack(spacing: .xs) {
+                if let icon {
                     icon
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 20, height: 20)
-                        .foregroundColor(Color.Text.secondary)
+                        .frame(width: size.iconSize, height: size.iconSize)
+                        .foregroundColor(.Input.icon)
                 }
 
-                if isSecure {
-                    SecureField(placeholder, text: $text)
-                        .disabled(isDisabled)
-                        .focused($isFocused)
-                        .keyboardType(keyboardType)
-                        .textContentType(textContentType)
-                        .textInputAutocapitalization(autocapitalization == .none ? .never : (autocapitalization == .words ? .words : (autocapitalization == .sentences ? .sentences : .characters)))
-                } else {
-                    TextField(placeholder, text: $text)
-                        .disabled(isDisabled)
-                        .focused($isFocused)
-                        .keyboardType(keyboardType)
-                        .textContentType(textContentType)
-                        .textInputAutocapitalization(autocapitalization == .none ? .never : (autocapitalization == .words ? .words : (autocapitalization == .sentences ? .sentences : .characters)))
+                Group {
+                    if isSecure {
+                        SecureField("", text: $text, prompt: prompt)
+                    } else {
+                        TextField("", text: $text, prompt: prompt)
+                    }
                 }
-                
-                if let icon = trailingIcon {
-                    icon
-                        .scaledToFit()
-                        .frame(width: 20, height: 20)
-                        .foregroundColor(Color.Text.secondary)
-                        .animation(.easeIn, value: text)
-                }
-            }
-            .padding(.input)
-            .background(currentState.backgroundColor)
-            .cornerRadius(.radiusXL)
-            .border(currentState.borderColor, lineWidth: .medium, cornerRadius: .radiusXL)
-            .onChange(of: isDisabled) { _, newValue in
-                // Clear focus when disabled to prevent invalid session states
-                if newValue {
-                    isFocused = false
-                }
-            }
+                .focused($isFocused)
+                .keyboardType(keyboardType)
+                .textContentType(textContentType)
+                .textInputAutocapitalization(capitalization)
 
-            // Helper or Error Text
-            if let errorMessage = errorMessage {
-                HStack(spacing: .xxs) {
-                    Image(systemName: "exclamationmark.circle.fill")
-                        .foregroundColor(Color.Semantic.error)
-                        .font(.system(size: 12))
-                    DSText(errorMessage, style: .caption, color: Color.Semantic.error)
+                if let trailingIcon {
+                    trailingIcon
+                        .frame(width: size.iconSize, height: size.iconSize)
+                        .foregroundColor(.Input.icon)
+                } else if showsClearButton && !isDisabled {
+                    DSInputClearButton(text: $text, size: size)
                 }
-            } else if let helperText = helperText {
-                DSText(helperText, style: .caption, color: Color.Text.tertiary)
+            }
+        }
+        .disabled(isDisabled)
+        .onChange(of: isDisabled) { _, newValue in
+            // Clear focus when disabled to prevent invalid session states
+            if newValue {
+                isFocused = false
             }
         }
     }
@@ -210,105 +170,70 @@ public struct DSTextArea: View {
         self.minHeight = minHeight
     }
 
-    private var currentState: DSTextFieldState {
-        if isDisabled {
-            return .disabled
-        } else if errorMessage != nil {
-            return .error
-        } else if isFocused {
-            return .focused
-        } else {
-            return .default
-        }
-    }
-
     public var body: some View {
-        VStack(alignment: .leading, spacing: .xs) {
-            // Label
-            if let label = label {
-                DSText(label, style: .bodySmall, color: Color.Text.secondary)
-            }
-
-            // Text Editor
+        DSInputField(
+            title: label,
+            helper: errorMessage ?? helperText,
+            status: errorMessage != nil ? .error : .normal,
+            isFocused: isFocused
+        ) {
             ZStack(alignment: .topLeading) {
                 if text.isEmpty {
-                    DSText(placeholder, style: .body, color: Color.Text.tertiary)
-                        .padding(.horizontal, DSSpacing.Component.inputPadding)
-                        .padding(.vertical, DSSpacing.Component.inputPadding)
+                    // Matches TextEditor's built-in text insets
+                    Text(placeholder)
+                        .foregroundColor(.Input.placeholder)
+                        .padding(.top, .xs)
+                        .padding(.leading, 5)
                 }
 
                 TextEditor(text: $text)
-                    .disabled(isDisabled)
                     .focused($isFocused)
-                    .padding(.xs)
                     .scrollContentBackground(.hidden)
             }
             .frame(minHeight: minHeight)
-            .background(currentState.backgroundColor)
-            .cornerRadius(.radiusMD)
-            .border(currentState.borderColor, lineWidth: .medium, cornerRadius: .radiusMD)
-            .onChange(of: isDisabled) { _, newValue in
-                // Clear focus when disabled to prevent invalid session states
-                if newValue {
-                    isFocused = false
-                }
-            }
-
-            // Helper or Error Text
-            if let errorMessage = errorMessage {
-                HStack(spacing: .xxs) {
-                    Image(systemName: "exclamationmark.circle.fill")
-                        .foregroundColor(Color.Semantic.error)
-                        .font(.system(size: 12))
-                    DSText(errorMessage, style: .caption, color: Color.Semantic.error)
-                }
-            } else if let helperText = helperText {
-                DSText(helperText, style: .caption, color: Color.Text.tertiary)
+        }
+        .disabled(isDisabled)
+        .onChange(of: isDisabled) { _, newValue in
+            // Clear focus when disabled to prevent invalid session states
+            if newValue {
+                isFocused = false
             }
         }
     }
 }
 
 // MARK: - Preview
-struct DSTextField_Previews: PreviewProvider {
-    static var previews: some View {
-        VStack(spacing: .lg) {
-            DSTextField(
-                text: .constant(""),
-                label: "Email",
-                placeholder: "Enter your email",
-                helperText: "We'll never share your email"
-            )
+private struct DSTextFieldGallery: View {
+    @State private var email = ""
+    @State private var password = "secret"
+    @State private var name = "secret"
 
-            DSTextField(
-                text: .constant(""),
-                label: "Password",
-                placeholder: "Enter password",
-                isSecure: true,
-                icon: Image(systemName: "lock.fill")
-            )
-
-            DSTextField(
-                text: .constant("error@example.com"),
-                label: "Email with Error",
-                placeholder: "Enter your email",
-                errorMessage: "This email is already taken"
-            )
-
-            DSTextField(
-                text: .constant("Disabled"),
-                label: "Disabled Field",
-                placeholder: "Can't edit this",
-                isDisabled: true
-            )
-
-            DSTextArea(
-                text: .constant(""),
-                label: "Description",
-                placeholder: "Enter a description",
-                helperText: "Maximum 500 characters"
-            )
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: .lg) {
+                DSTextField(text: $name, label: "First name", placeholder: "Enter your name", helperText: "We'll never share your name")
+                DSTextField(text: $email, label: "Email", placeholder: "Enter your email", helperText: "We'll never share your email")
+                DSTextField(text: $password, label: "Password", placeholder: "Enter password", isSecure: true, icon: Image(systemName: "lock"))
+                DSTextField(text: .constant("Disabled"), label: "Disabled", isDisabled: true)
+                DSTextArea(text: .constant(""), label: "Description", placeholder: "Enter a description", helperText: "Maximum 500 characters")
+            }
+            .padding()
         }
-        .padding()
+        .background(Color.Background.primary)
     }
+}
+
+#Preview("RWLabs") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSTextFieldGallery().designSystem()
+}
+
+#Preview("RWLabs Dark") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSTextFieldGallery().designSystem().preferredColorScheme(.dark)
+}
+
+#Preview("BW") {
+    DesignSystem.configure(theme: BWTheme())
+    return DSTextFieldGallery().designSystem()
 }

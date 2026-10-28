@@ -2,349 +2,154 @@
 //  DSHeightPicker.swift
 //  RWLabsDesignSystem
 //
-//  Wheel-style height picker component
+//  Height wheel matching the Figma "Height picker cm/ft" and "height toggle".
+//  One value in inches, shown as feet'inches or centimetres (2 decimals), so switching units
+//  never loses precision.
+//
+//  @State var inches = 70
+//  @State var unit: DSHeightUnit = .feet
+//
+//  DSHeightPickerView(heightInInches: $inches, unit: $unit)    // toggle + wheel
+//  DSHeightPicker(heightInInches: $inches, unit: unit)         // wheel only
 //
 
 import SwiftUI
 
-// MARK: - DSHeightPicker
+// MARK: - Height Unit
+public enum DSHeightUnit: String, CaseIterable, Sendable {
+    case feet = "ft"
+    case cm = "cm"
 
-public struct DSHeightPickerView: View {
+    @available(*, deprecated, renamed: "feet")
+    public static var metric: Self { .feet }
 
-    // MARK: - Properties
-    @Binding var selectedHeight: Int
-    @Binding var selectedMetricHeight: (Int, Int)
-    @State var unit: DSHeightUnit
-    let label: String?
-    let isDisabled: Bool
+    public var displayName: String {
+        switch self {
+        case .feet: "Feet"
+        case .cm:   "Centimeters"
+        }
+    }
 
-    // MARK: - Initialization
+    public var shortName: String { rawValue }
 
-   
-
-    // MARK: - Body
-
-    public var body: some View {
-        VStack(alignment: .leading, spacing: .sm) {
-            // Label and Unit Toggle
-            VStack {
-                DSHeightUnitToggle(unit: $unit, isDisabled: isDisabled)
-                    .disabled(isDisabled)
-                DSHeightPicker(unit: $unit, selectedHeight: $selectedHeight, selectedMetricHeight: $selectedMetricHeight, isDisabled: isDisabled)
-            }
+    /// Formats a height in inches for this unit: `5'10` or `177.80 cm`.
+    public func format(inches: Int) -> String {
+        switch self {
+        case .feet: "\(inches / 12)'\(inches % 12)"
+        case .cm:   String(format: "%.2f cm", Double(inches) * 2.54)
         }
     }
 }
 
-// MARK: - Height Unit
-
+// MARK: - DSHeightPicker
+/// The wheel in its Figma card.
 public struct DSHeightPicker: View {
-    @Binding public var selectedHeight: Int
-    @Binding public var selectedMetricHeight: (Int, Int)
-    @Binding public var unit: DSHeightUnit
-    @State public var label: String?
-    @State public var isDisabled: Bool
-    
+    @Binding var heightInInches: Int
+    let unit: DSHeightUnit
+    let range: ClosedRange<Int>
+
+    /// - Parameter range: Selectable heights in inches. Figma lists 2'0 (60.96 cm) to 11'11 (363.22 cm).
+    public init(heightInInches: Binding<Int>, unit: DSHeightUnit, range: ClosedRange<Int> = 24...143) {
+        self._heightInInches = heightInInches
+        self.unit = unit
+        self.range = range
+    }
+
+    /// Bridges the old centimetre binding: `selectedHeight` is read and written in whole centimetres.
+    @available(*, deprecated, message: "Use init(heightInInches:unit:range:)")
     public init(
         unit: Binding<DSHeightUnit>,
         selectedHeight: Binding<Int>,
-        selectedMetricHeight: Binding<(Int, Int)> = .constant((5,11)),
+        selectedMetricHeight: Binding<(Int, Int)> = .constant((5, 11)),
         label: String? = nil,
         isDisabled: Bool = false
     ) {
-        self._selectedHeight = selectedHeight
-        self._selectedMetricHeight = selectedMetricHeight
-        self._unit = unit
-        self.label = label
-        self.isDisabled = isDisabled
+        self.init(
+            heightInInches: Binding(
+                get: { Int((Double(selectedHeight.wrappedValue) / 2.54).rounded()) },
+                set: { selectedHeight.wrappedValue = Int((Double($0) * 2.54).rounded()) }
+            ),
+            unit: unit.wrappedValue
+        )
     }
-    
+
     public var body: some View {
-        DSCard {
-            ZStack {
-                switch unit {
-
-                case .cm:
-                    Picker("Height", selection: $selectedHeight) {
-                        ForEach(heightOptions, id: \.self) { height in
-                            DSText(formatHeight(height, unit: .cm))
-                                .tag(height)
-                        }
-                    }
-                    .pickerStyle(.wheel)
-                    .frame(height: 212)
-                    .disabled(isDisabled)
-                    .id("cm")
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .leading).combined(with: .opacity),
-                        removal: .move(edge: .leading).combined(with: .opacity)
-                    ))
-                    
-
-                case .inches:
-                    Picker("Height", selection: $selectedHeight) {
-                        ForEach(heightOptions, id: \.self) { height in
-                            DSText(formatHeight(height, unit: .inches))
-                                .tag(height)
-                        }
-                    }
-                    .pickerStyle(.wheel)
-                    .frame(height: 212)
-                    .disabled(isDisabled)
-                    .id("inches")
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .leading).combined(with: .opacity),
-                        removal: .move(edge: .leading).combined(with: .opacity)
-                    ))
-
-                case .metric:
-                    HStack {
-                        Picker("Feet", selection: $selectedMetricHeight.0) {
-                            ForEach(feetOptions, id: \.self) { height in
-                                DSText(formatHeight(height))
-                                    .tag(height)
-                            }
-                        }
-                        .pickerStyle(.wheel)
-                        .frame(height: 212)
-
-                        Picker("Inches", selection: $selectedMetricHeight.1) {
-                            ForEach(inchesOptions, id: \.self) { height in
-                                DSText(formatHeight(height, unit: .inches))
-                                    .tag(height)
-                            }
-                        }
-                        .pickerStyle(.wheel)
-                        .frame(height: 212)
-                    }
-                    .disabled(isDisabled)
-                    .id("feet")
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .trailing).combined(with: .opacity),
-                        removal: .move(edge: .trailing).combined(with: .opacity)
-                    ))
-                }
-            }
+        DSWheelPicker(selection: $heightInInches, options: Array(range)) { inches in
+            Text(unit.format(inches: inches))
         }
-        .animation(.easeInOut(duration: 0.25), value: unit)
-    }
-    
-    // MARK: - Helpers
-
-    private var heightOptions: [Int] {
-        var options: [Int] = []
-        var current = 60 // Start from 60.96 cm (24 inches)
-        while current <= 363 { // End at 363.22 cm (143 inches)
-            options.append(current)
-            current += 1 // Increment by 2.54 cm (1 inch)
-        }
-        return options
-    }
-    
-    private var feetOptions: [Int] {
-        var options: [Int] = []
-        var current = 2 // Start from 60.96 cm (24 inches)
-        while current <= 12 { // End at 363.22 cm (143 inches)
-            options.append(current)
-            current += 1 // Increment by 2.54 cm (1 inch)
-        }
-        return options
-    }
-    
-    private var inchesOptions: [Int] {
-        var options: [Int] = []
-        var current = 1 // Start from 60.96 cm (24 inches)
-        while current <= 12 { // End at 363.22 cm (143 inches)
-            options.append(current)
-            current += 1 // Increment by 2.54 cm (1 inch)
-        }
-        return options
-    }
-
-    private func formatHeight(_ height: Int, unit: DSHeightUnit? = nil) -> String {
-        switch unit {
-        case .cm:
-            return "\(height) cm"
-        case .inches:
-            let inches = height
-            return "\(height)\""
-        case .metric:
-            let totalInches = height
-            let feet = Int(totalInches / 12)
-            let inches = 0//Int(totalInches.truncatingRemainder(dividingBy: 12))
-            return "\(feet)'\(inches)\""
-            
-        default:
-            return "\(height)'"
-        }
-    }
-}
-public enum DSHeightUnit: String, CaseIterable {
-    case cm = "cm"
-    case inches = "in"
-    case metric = "ft"
-
-    var displayName: String {
-        switch self {
-        case .cm:
-            return "Centimeters"
-        case .inches:
-            return "Inches"
-        case .metric:
-            return "Feet"
-        }
-    }
-
-    var shortName: String {
-        switch self {
-        case .cm:
-            return "cm"
-        case .inches:
-            return "in"
-        case .metric:
-            return "ft"
-        }
+        .id(unit)
+        .transition(.opacity)
+        .animation(.easeInOut(duration: 0.2), value: unit)
+        .dsWheelCard()
     }
 }
 
 // MARK: - Height Unit Toggle
-
+/// Figma "height toggle": ft | cm with a sliding thumb.
 public struct DSHeightUnitToggle: View {
-    @Binding public var unit: DSHeightUnit
-    @State public var isDisabled: Bool = false
-    @State public var label: String?
-    @Namespace private var namespace
-    
-    public init(unit: Binding<DSHeightUnit>, isDisabled: Bool = false, label: String? = nil) {
+    @Binding var unit: DSHeightUnit
+
+    public init(unit: Binding<DSHeightUnit>) {
         self._unit = unit
-        self.isDisabled = isDisabled
-        self.label = label
     }
-    
+
     public var body: some View {
-        VStack {
-            if let label {
-                DSText(label, style: .bodyMedium, color: isDisabled ? .Text.tertiary : .Text.primary)
-            }
-            HStack(spacing: .xxs) {
-                ForEach([DSHeightUnit.metric, DSHeightUnit.cm], id: \.self) { option in
-                    ZStack {
-                        if unit == option {
-                            RoundedRectangle(cornerRadius: .radiusLG)
-                                .fill(Color.Background.primary)
-                                .matchedGeometryEffect(id: "selection", in: namespace)
-                        }
-                        
-                        DSText(
-                            option.shortName,
-                            style: .caption,
-                            color: .Text.primary
-                        )
-                    }
-                    .onTapGesture {
-                        withAnimation(.easeInOut(duration: 0.25)) {
-                            unit = option
-                        }
-                    }
-                }
-                .frame(width: 28)
-                .frame(height: 22)
-                .animation(.easeInOut(duration: 0.2), value: unit)
-            }
-            .frame(height: 27)
-            .padding(.horizontal, .xs)
-            .padding(.vertical, .xxs)
-            .background(Color.Background.secondary)
-            .cornerRadius(.radiusFull)
-            .shadow(.sm)
+        DSPillToggle(selection: $unit, options: [.feet, .cm]) { Text($0.shortName) }
+    }
+}
+
+// MARK: - DSHeightPickerView
+/// Toggle above the wheel, right-aligned as in the onboarding screen.
+public struct DSHeightPickerView: View {
+    @Binding var heightInInches: Int
+    @Binding var unit: DSHeightUnit
+    let range: ClosedRange<Int>
+
+    public init(heightInInches: Binding<Int>, unit: Binding<DSHeightUnit>, range: ClosedRange<Int> = 24...143) {
+        self._heightInInches = heightInInches
+        self._unit = unit
+        self.range = range
+    }
+
+    public var body: some View {
+        VStack(alignment: .trailing, spacing: .sm) {
+            DSHeightUnitToggle(unit: $unit)
+            DSHeightPicker(heightInInches: $heightInInches, unit: unit, range: range)
         }
     }
 }
 
 // MARK: - Preview
+private struct DSHeightPickerGallery: View {
+    @State private var inches = 84
+    @State private var unit: DSHeightUnit = .cm
 
-#Preview("Height Picker - CM") {
-    struct PreviewWrapper: View {
-        @State private var selectedHeight: Int = 170
-        @State private var selectedMetricHeight: (Int,Int) = (5,11)
-        @State private var unit: DSHeightUnit = .cm
-
-        var body: some View {
-            ZStack {
-                Color.Background.primary.ignoresSafeArea()
-
-                VStack(spacing: .xl) {
-                    DSHeightUnitToggle(unit: $unit)
-                    DSHeightPicker(
-                        unit: $unit, selectedHeight: $selectedHeight,
-                        selectedMetricHeight: $selectedMetricHeight,
-                        label: "Select Height",
-                        isDisabled: false
-                    )
-
-                    VStack(spacing: .sm) {
-                        DSText("Selected Height:", style: .bodySmall, color: .Text.secondary)
-                        DSText(String(format: "%d cm", selectedHeight), style: .title3, color: .Text.primary)
-                        DSText(String(format: "%d cm", selectedMetricHeight.1), style: .title3, color: .Text.primary)
-                        DSText(unit.shortName, style: .title3, color: .Text.primary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .center)
-
-                    Spacer()
-                }
-                .padding()
+    var body: some View {
+        VStack(spacing: .lg) {
+            DSHeightPickerView(heightInInches: $inches, unit: $unit)
+            DSHeightPicker(heightInInches: $inches, unit: .feet)
+            HStack {
+                DSHeightUnitToggle(unit: .constant(.feet))
+                DSHeightUnitToggle(unit: .constant(.cm))
             }
-            .preferredColorScheme(.dark)
-        }
-    }
-
-    return PreviewWrapper()
-}
-
-#Preview("Height Picker - Disabled") {
-    ZStack {
-        Color.Background.primary.ignoresSafeArea()
-
-        VStack(spacing: .xl) {
-            DSHeightPicker(
-                unit: .constant(.metric), selectedHeight: .constant(170),
-                selectedMetricHeight: .constant((5,11)),
-                label: "Select Height",
-                isDisabled: true
-            )
-
-            Spacer()
         }
         .padding()
+        .frame(maxHeight: .infinity, alignment: .top)
+        .background(Color.Background.primary)
     }
-    .preferredColorScheme(.light)
 }
 
-#Preview("Height Picker - Inches") {
-    struct PreviewWrapper: View {
-        @State private var selectedHeight: Int = 170
-        @State private var selectedMetricHeight: (Int, Int) = (5,11)
+#Preview("RWLabs") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSHeightPickerGallery().designSystem()
+}
 
-        var body: some View {
-            ZStack {
-                Color.Background.primary.ignoresSafeArea()
+#Preview("RWLabs Dark") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSHeightPickerGallery().designSystem().preferredColorScheme(.dark)
+}
 
-                VStack(spacing: .xl) {
-                    DSHeightPicker(
-                        unit: .constant(.inches),
-                        selectedHeight: $selectedHeight,
-                        selectedMetricHeight: $selectedMetricHeight,
-                        label: "Select Height",
-                        isDisabled: false
-                    )
-
-                    Spacer()
-                }
-                .padding()
-            }
-            .preferredColorScheme(.light)
-        }
-    }
-
-    return PreviewWrapper()
+#Preview("BW") {
+    DesignSystem.configure(theme: BWTheme())
+    return DSHeightPickerGallery().designSystem()
 }
