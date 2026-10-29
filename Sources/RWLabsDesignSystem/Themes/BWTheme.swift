@@ -42,6 +42,9 @@ public struct BWColor: DSColorPalette {
     public var input:  any DSInputColors  { BWInputColors(palette: self) }
     public var selection: any DSSelectionColors { BWSelectionColors(palette: self) }
     public var badge: any DSBadgeColors { BWBadgeColors(palette: self) }
+    public var swipe: any DSSwipeColors { BWSwipeColors(palette: self) }
+    public var search: any DSSearchColors { BWSearchColors(palette: self) }
+    public var chat: any DSChatColors { BWChatColors(palette: self) }
 
     public static let `default` = BWColor()
 
@@ -108,4 +111,29 @@ struct BWBadgeColors: DSBadgeColors {
     let palette: any DSColorPalette
 
     var brandFill: Color { palette.neutral.shade100 }
+}
+
+/// BW's brand fill flips between black and white, so icons on it flip too.
+struct BWSwipeColors: DSSwipeColors {
+    let palette: any DSColorPalette
+
+    var knobIcon: Color { palette.neutral.shade50 }
+}
+
+/// BW's lightest gray is white, so the search field steps up one shade to show on the page.
+struct BWSearchColors: DSSearchColors {
+    let palette: any DSColorPalette
+
+    var field: Color { palette.neutral.shade100 }
+}
+
+/// BW's lightest gray is white, so chat surfaces step up a shade, and the brand fill flips
+/// between black and white, so icons on it follow the page color.
+struct BWChatColors: DSChatColors {
+    let palette: any DSColorPalette
+
+    var surface:       Color { palette.neutral.shade100 }
+    var recordingFill: Color { palette.neutral.shade100 }
+    var activeIcon:    Color { palette.neutral.shade50 }
+    var divider:       Color { palette.neutral.shade100 }
 }

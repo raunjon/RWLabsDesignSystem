@@ -26,18 +26,18 @@ App source: `Sources/RWLabsDesignSystem/DesignSystem/Components/`
 | Height picker | Yes: cm / ft | `DSWheelPicker`, `DSHeightPicker` | ✅ Done |
 | Height toggle | Yes: Ft / Cm | `DSPillToggle`, `DSHeightUnitToggle` | ✅ Done |
 | Gender picker | Yes: closed, open dropdown, each option selected | `DSBasePicker`, `DSPicker`, `DSOptionalPicker` | ✅ Done |
-| Swipe button | Yes: Inactive / Swipe / Confirm | `DSSliderButton` | ⬜ Yes |
-| Search bar | Yes | `DSSearchBar` | ⬜ Yes |
+| Swipe button | Yes: Inactive / Swipe / Confirm | `DSSliderButton` | ✅ Done |
+| Search bar | Yes | `DSSearchBar`, `DSSearchBarWithFilters` | ✅ Done |
 | Option dropdown | Yes | `DSOptionDropdown`, `DSMenu` | ✅ Done |
-| Popup cards | Yes: 10 types (camera access, oops, upload failed, ID expired…) | `DSAlert` (closest match) | ⬜ Yes |
+| Popup cards | Yes: 10 types (camera access, oops, upload failed, ID expired…) | `DSPopupCard`, `.dsPopup` (app supplies illustrations and copy) | ✅ Done |
 | Badges | Yes: Recommended (animated sheen), ID verified, Photo verified | `DSRecommendedBadge`, `DSLabelBadge` (count/dot `DSBadge` kept) | ✅ Done |
-| Tab | Yes: Tab 1 / Tab 2 | `DSSegmentedControl` | ⬜ Yes |
-| Nav Bar (nav icons) | Yes | `DSTabBar` | ⬜ Yes |
-| Chat messages | Yes: Sender / Receiver | `DSChatBubble` | ⬜ Yes |
-| Chat typing field | Yes: Empty / Filled / Voice recording / Voice recorded | `DSGroupChatInput` (in `DSGroupChatView.swift`) | ⬜ Yes, no voice states yet |
-| Private chat container | Yes: Online / Offline | `DSGroupChatView` | ⬜ Yes |
-| Chat fields (chat list rows) | Yes: Direct / Community × Read / Unread | `DSListRow` (generic row only) | ⬜ Yes |
-| Cards container | Yes: L / S | `DSCard` | ⬜ Yes |
+| Tab | Yes: Tab 1 / Tab 2 | `DSSegmentedControl` | ✅ Done |
+| Nav Bar (nav icons) | Yes | `.dsTabBarStyle` + `.dsTab` on a native `TabView`; `DSTabBar`, `DSTabBarView` (app supplies icons) | ✅ Done |
+| Chat messages | Yes: Sender / Receiver | `DSChatBubble`, `DSChatReactions`, `DSChatAvatar` | ✅ Done |
+| Chat typing field | Yes: Empty / Filled / Voice recording / Voice recorded | `DSChatInput`, `DSVoiceWaveform` (app owns recording) | ✅ Done |
+| Private chat container | Yes: Online / Offline | `DSChatView`, `DSChatHeader`, `DSChatDatePill` (`DSGroupChatView` uses the same pieces) | ✅ Done |
+| Chat fields (chat list rows) | Yes: Direct / Community × Read / Unread | `DSChatListRow`, `DSUnreadBadge` | ✅ Done |
+| Cards container | Yes: L / S | `DSCardContainer`, `DSCard` (`.container` look is the default) | ✅ Done |
 | Title and subtext | Yes | — | ⬜ Build |
 | Photo upload | Yes: Upload / Upload failed / Uploaded / Verified | — | ⬜ Build |
 | Verification progress | Yes: stages 1–3 | — | ⬜ Build |

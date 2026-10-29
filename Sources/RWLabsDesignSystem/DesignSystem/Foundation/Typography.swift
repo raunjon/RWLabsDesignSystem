@@ -108,6 +108,10 @@ public struct DSTypography {
         case bodySmall
         /// Label: 12px Regular
         case label
+        /// Body Medium 12: 12px SemiBold (chat list unread previews)
+        case labelMedium
+        /// Label 10px: 10px Regular (timestamps, nav bar titles)
+        case caption
 
         /// Metrics from Figma. Heading 1 uses a 48px line height; Figma's 20px would make
         /// multi-line headings overlap.
@@ -121,6 +125,8 @@ public struct DSTypography {
             case .bodySmallMedium: DSTextMetrics(size: 14, weight: .medium,   lineHeight: 20)
             case .bodySmall:       DSTextMetrics(size: 14, weight: .regular,  lineHeight: 22)
             case .label:           DSTextMetrics(size: 12, weight: .regular,  lineHeight: 20)
+            case .labelMedium:     DSTextMetrics(size: 12, weight: .semibold, lineHeight: 20)
+            case .caption:         DSTextMetrics(size: 10, weight: .regular,  lineHeight: 20)
             }
         }
 

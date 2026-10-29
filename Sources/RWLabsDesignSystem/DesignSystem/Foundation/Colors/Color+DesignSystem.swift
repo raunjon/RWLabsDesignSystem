@@ -77,6 +77,9 @@ public extension Color {
         public static var destructive:        Color { palette.button.destructive        }
         public static var destructiveText:    Color { palette.button.destructiveText    }
         public static var destructivePressed: Color { palette.button.destructivePressed }
+        public static var inverse:            Color { palette.button.inverse            }
+        public static var inverseText:        Color { palette.button.inverseText        }
+        public static var inversePressed:     Color { palette.button.inversePressed     }
         public static var linkText:           Color { palette.button.linkText           }
         public static var brandLinkText:      Color { palette.button.brandLinkText      }
     }
@@ -159,6 +162,96 @@ public extension Color {
         public static var brandIcon:     Color { palette.badge.brandIcon     }
         public static var neutralFill:   Color { palette.badge.neutralFill   }
         public static var neutralText:   Color { palette.badge.neutralText   }
+    }
+
+    @MainActor
+    struct Swipe {
+        public static var track:          Color { palette.swipe.track }
+        public static var label:          Color { palette.swipe.label }
+        public static var knob:           Color { palette.swipe.knob }
+        public static var knobIcon:       Color { palette.swipe.knobIcon }
+        public static var confirmedTrack: Color { palette.swipe.confirmedTrack }
+        public static var confirmedKnob:  Color { palette.swipe.confirmedKnob }
+        public static var confirmedIcon:  Color { palette.swipe.confirmedIcon }
+    }
+
+    @MainActor
+    struct Search {
+        public static var field:       Color { palette.search.field }
+        public static var text:        Color { palette.search.text }
+        public static var placeholder: Color { palette.search.placeholder }
+        public static var icon:        Color { palette.search.icon }
+        public static var backFill:    Color { palette.search.backFill }
+        public static var backIcon:    Color { palette.search.backIcon }
+    }
+
+    @MainActor
+    struct Popup {
+        public static var card:      Color { palette.popup.card }
+        public static var scrim:     Color { palette.popup.scrim }
+        public static var title:     Color { palette.popup.title }
+        public static var message:   Color { palette.popup.message }
+        public static var closeFill: Color { palette.popup.closeFill }
+        public static var closeIcon: Color { palette.popup.closeIcon }
+    }
+
+    @MainActor
+    struct Card {
+        public static var surface:   Color { palette.card.surface }
+        public static var border:    Color { palette.card.border }
+        public static var shadow:    Color { palette.card.shadow }
+        public static var title:     Color { palette.card.title }
+        public static var message:   Color { palette.card.message }
+        public static var accessory: Color { palette.card.accessory }
+    }
+
+    @MainActor
+    struct Tab {
+        public static var border:       Color { palette.tab.border }
+        public static var selectedFill: Color { palette.tab.selectedFill }
+        public static var selectedText: Color { palette.tab.selectedText }
+        public static var text:         Color { palette.tab.text }
+    }
+
+    @MainActor
+    struct NavBar {
+        public static var bar:        Color { palette.navBar.bar }
+        public static var selected:   Color { palette.navBar.selected }
+        public static var unselected: Color { palette.navBar.unselected }
+        public static var shadow:     Color { palette.navBar.shadow }
+    }
+
+    @MainActor
+    struct Chat {
+        public static var bar: Color { palette.chat.bar }
+        public static var barBorder: Color { palette.chat.barBorder }
+        public static var surface: Color { palette.chat.surface }
+        public static var title: Color { palette.chat.title }
+        public static var icon: Color { palette.chat.icon }
+        public static var senderBubble: Color { palette.chat.senderBubble }
+        public static var senderText: Color { palette.chat.senderText }
+        public static var senderTime: Color { palette.chat.senderTime }
+        public static var receiverText: Color { palette.chat.receiverText }
+        public static var receiverTime: Color { palette.chat.receiverTime }
+        public static var reactionBorder: Color { palette.chat.reactionBorder }
+        public static var reactionCount: Color { palette.chat.reactionCount }
+        public static var inputText: Color { palette.chat.inputText }
+        public static var activeFill: Color { palette.chat.activeFill }
+        public static var activeIcon: Color { palette.chat.activeIcon }
+        public static var recordingFill: Color { palette.chat.recordingFill }
+        public static var recordingAccent: Color { palette.chat.recordingAccent }
+        public static var waveform: Color { palette.chat.waveform }
+        public static var recordedTime: Color { palette.chat.recordedTime }
+        public static var online: Color { palette.chat.online }
+        public static var lastSeen: Color { palette.chat.lastSeen }
+        public static var previewUnread: Color { palette.chat.previewUnread }
+        public static var previewRead: Color { palette.chat.previewRead }
+        public static var source: Color { palette.chat.source }
+        public static var timeUnread: Color { palette.chat.timeUnread }
+        public static var timeRead: Color { palette.chat.timeRead }
+        public static var unreadBadge: Color { palette.chat.unreadBadge }
+        public static var unreadBadgeText: Color { palette.chat.unreadBadgeText }
+        public static var divider: Color { palette.chat.divider }
     }
 
     @MainActor

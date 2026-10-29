@@ -98,6 +98,9 @@ public protocol DSButtonColors: Sendable {
     var destructive:        Color { get }
     var destructiveText:    Color { get }
     var destructivePressed: Color { get }
+    var inverse:            Color { get }
+    var inverseText:        Color { get }
+    var inversePressed:     Color { get }
     var linkText:           Color { get }
     var brandLinkText:      Color { get }
 }
@@ -120,6 +123,9 @@ public extension DSButtonColors {
     var destructivePressed: Color { palette.error.shade600 }
     var linkText:           Color { palette.neutral.shade900 }
     var brandLinkText:      Color { palette.secondary.base }
+    var inverse:            Color { palette.neutral.shade900 }
+    var inverseText:        Color { Color(light: palette.white, dark: palette.neutral.shade50) }
+    var inversePressed:     Color { palette.neutral.shade800 }
 }
 
 // MARK: - Input
@@ -277,6 +283,213 @@ public extension DSBadgeColors {
     var neutralText:   Color { palette.neutral.shade900 }
 }
 
+// MARK: - Swipe
+/// Swipe-to-confirm button
+public protocol DSSwipeColors: Sendable {
+    var palette: any DSColorPalette { get }
+    /// Resting track
+    var track:          Color { get }
+    var label:          Color { get }
+    var knob:           Color { get }
+    var knobIcon:       Color { get }
+    var confirmedTrack: Color { get }
+    var confirmedKnob:  Color { get }
+    var confirmedIcon:  Color { get }
+}
+
+public extension DSSwipeColors {
+    var track:          Color { Color(light: palette.white, dark: palette.neutral.shade50) }
+    var label:          Color { palette.neutral.shade800 }
+    var knob:           Color { palette.primary.base }
+    var knobIcon:       Color { palette.white }
+    var confirmedTrack: Color { palette.primary.base }
+    var confirmedKnob:  Color { Color(light: palette.white, dark: palette.neutral.shade50) }
+    var confirmedIcon:  Color { palette.primary.base }
+}
+
+// MARK: - Search
+/// Search bar
+public protocol DSSearchColors: Sendable {
+    var palette: any DSColorPalette { get }
+    /// Field fill; dark steps up so it separates from the page
+    var field:       Color { get }
+    var text:        Color { get }
+    var placeholder: Color { get }
+    var icon:        Color { get }
+    /// Circle behind the back chevron
+    var backFill:    Color { get }
+    var backIcon:    Color { get }
+}
+
+public extension DSSearchColors {
+    var field:       Color { Color(light: palette.neutral.shade50, dark: palette.neutral.shade100) }
+    var text:        Color { palette.neutral.shade900 }
+    var placeholder: Color { palette.neutral.shade600 }
+    var icon:        Color { palette.neutral.shade600 }
+    var backFill:    Color { palette.neutral.shade100 }
+    var backIcon:    Color { palette.neutral.shade900 }
+}
+
+// MARK: - Popup
+/// Popup cards
+public protocol DSPopupColors: Sendable {
+    var palette: any DSColorPalette { get }
+    /// Card surface; the scrim darkens the page around it in dark mode
+    var card:      Color { get }
+    /// Dims the page behind the card
+    var scrim:     Color { get }
+    var title:     Color { get }
+    var message:   Color { get }
+    var closeFill: Color { get }
+    var closeIcon: Color { get }
+}
+
+public extension DSPopupColors {
+    var card:      Color { Color(light: palette.white, dark: palette.neutral.shade50) }
+    var scrim:     Color { palette.black.opacity(0.4) }
+    var title:     Color { palette.neutral.shade900 }
+    var message:   Color { palette.neutral.shade700 }
+    var closeFill: Color { palette.neutral.shade100 }
+    var closeIcon: Color { palette.neutral.shade900 }
+}
+
+// MARK: - Card
+/// Cards container (user goal cards, carousel cards)
+public protocol DSCardColors: Sendable {
+    var palette: any DSColorPalette { get }
+    var surface:   Color { get }
+    var border:    Color { get }
+    var shadow:    Color { get }
+    var title:     Color { get }
+    var message:   Color { get }
+    /// The outlined ＋ in the corner
+    var accessory: Color { get }
+}
+
+public extension DSCardColors {
+    /// Raised a step above the page in dark mode
+    var surface:   Color { Color(light: palette.white, dark: palette.neutral.shade100) }
+    var border:    Color { palette.neutral.shade200 }
+    var shadow:    Color { palette.black.opacity(0.25) }
+    var title:     Color { palette.neutral.shade900 }
+    var message:   Color { palette.neutral.shade600 }
+    var accessory: Color { palette.neutral.shade400 }
+}
+
+// MARK: - Tab
+/// Two-or-more option tab (Figma "Tab"), used by `DSSegmentedControl`
+public protocol DSTabColors: Sendable {
+    var palette: any DSColorPalette { get }
+    var border:       Color { get }
+    var selectedFill: Color { get }
+    var selectedText: Color { get }
+    var text:         Color { get }
+}
+
+public extension DSTabColors {
+    var border:       Color { palette.neutral.shade200 }
+    /// Stays a dark gray in dark mode instead of inverting to light
+    var selectedFill: Color { Color(light: palette.neutral.shade800, dark: palette.neutral.shade200) }
+    var selectedText: Color { Color(light: palette.white, dark: palette.neutral.shade900) }
+    var text:         Color { palette.neutral.shade700 }
+}
+
+// MARK: - Nav Bar
+/// Bottom navigation bar
+public protocol DSNavBarColors: Sendable {
+    var palette: any DSColorPalette { get }
+    var bar:        Color { get }
+    var selected:   Color { get }
+    var unselected: Color { get }
+    var shadow:     Color { get }
+}
+
+public extension DSNavBarColors {
+    var bar:        Color { Color(light: palette.white, dark: palette.neutral.shade50) }
+    var selected:   Color { palette.primary.base }
+    var unselected: Color { palette.neutral.shade600 }
+    var shadow:     Color { palette.black.opacity(0.25) }
+}
+
+// MARK: - Chat
+/// Chat messages, typing field, conversation header and chat list rows
+public protocol DSChatColors: Sendable {
+    var palette: any DSColorPalette { get }
+    /// Page-level surface of the header and typing bar
+    var bar:             Color { get }
+    var barBorder:       Color { get }
+    /// Gray fill shared by received bubbles, round controls, the text field, date and reaction chips
+    var surface:         Color { get }
+    var title:           Color { get }
+    var icon:            Color { get }
+
+    var senderBubble:    Color { get }
+    var senderText:      Color { get }
+    var senderTime:      Color { get }
+    var receiverText:    Color { get }
+    var receiverTime:    Color { get }
+    var reactionBorder:  Color { get }
+    var reactionCount:   Color { get }
+
+    var inputText:       Color { get }
+    /// Send button with text, mic while recording
+    var activeFill:      Color { get }
+    var activeIcon:      Color { get }
+    var recordingFill:   Color { get }
+    var recordingAccent: Color { get }
+    var waveform:        Color { get }
+    var recordedTime:    Color { get }
+
+    var online:          Color { get }
+    var lastSeen:        Color { get }
+
+    var previewUnread:   Color { get }
+    var previewRead:     Color { get }
+    var source:          Color { get }
+    var timeUnread:      Color { get }
+    var timeRead:        Color { get }
+    var unreadBadge:     Color { get }
+    var unreadBadgeText: Color { get }
+    var divider:         Color { get }
+}
+
+public extension DSChatColors {
+    var bar:             Color { Color(light: palette.white, dark: palette.neutral.shade50) }
+    var barBorder:       Color { palette.neutral.shade100 }
+    var surface:         Color { Color(light: palette.neutral.shade50, dark: palette.neutral.shade100) }
+    var title:           Color { palette.neutral.shade900 }
+    var icon:            Color { palette.neutral.shade900 }
+
+    /// Stays a dark gray in dark mode, a step above the received bubble
+    var senderBubble:    Color { Color(light: palette.neutral.shade800, dark: palette.neutral.shade200) }
+    var senderText:      Color { Color(light: palette.white, dark: palette.neutral.shade900) }
+    var senderTime:      Color { palette.neutral.shade500 }
+    var receiverText:    Color { palette.neutral.shade800 }
+    var receiverTime:    Color { palette.neutral.shade600 }
+    var reactionBorder:  Color { Color(light: palette.neutral.shade100, dark: palette.neutral.shade200) }
+    var reactionCount:   Color { palette.neutral.shade500 }
+
+    var inputText:       Color { palette.neutral.shade800 }
+    var activeFill:      Color { palette.primary.base }
+    var activeIcon:      Color { palette.white }
+    var recordingFill:   Color { palette.primary.shade50 }
+    var recordingAccent: Color { palette.primary.base }
+    var waveform:        Color { palette.neutral.shade600.opacity(0.35) }
+    var recordedTime:    Color { palette.neutral.shade700 }
+
+    var online:          Color { palette.success.shade600 }
+    var lastSeen:        Color { palette.neutral.shade600 }
+
+    var previewUnread:   Color { palette.neutral.shade900 }
+    var previewRead:     Color { palette.neutral.shade600 }
+    var source:          Color { palette.neutral.shade500 }
+    var timeUnread:      Color { Color(light: palette.error.shade400, dark: palette.error.shade600) }
+    var timeRead:        Color { palette.neutral.shade600 }
+    var unreadBadge:     Color { palette.error.shade600 }
+    var unreadBadgeText: Color { palette.white }
+    var divider:         Color { Color(light: palette.neutral.shade50, dark: palette.neutral.shade100) }
+}
+
 // MARK: - Icon
 public protocol DSIconColors: Sendable {
     var palette: any DSColorPalette { get }
@@ -343,6 +556,41 @@ public struct DSDefaultPillColors: DSPillColors {
 }
 
 public struct DSDefaultBadgeColors: DSBadgeColors {
+    public let palette: any DSColorPalette
+    public init(palette: any DSColorPalette) { self.palette = palette }
+}
+
+public struct DSDefaultSwipeColors: DSSwipeColors {
+    public let palette: any DSColorPalette
+    public init(palette: any DSColorPalette) { self.palette = palette }
+}
+
+public struct DSDefaultSearchColors: DSSearchColors {
+    public let palette: any DSColorPalette
+    public init(palette: any DSColorPalette) { self.palette = palette }
+}
+
+public struct DSDefaultPopupColors: DSPopupColors {
+    public let palette: any DSColorPalette
+    public init(palette: any DSColorPalette) { self.palette = palette }
+}
+
+public struct DSDefaultCardColors: DSCardColors {
+    public let palette: any DSColorPalette
+    public init(palette: any DSColorPalette) { self.palette = palette }
+}
+
+public struct DSDefaultTabColors: DSTabColors {
+    public let palette: any DSColorPalette
+    public init(palette: any DSColorPalette) { self.palette = palette }
+}
+
+public struct DSDefaultNavBarColors: DSNavBarColors {
+    public let palette: any DSColorPalette
+    public init(palette: any DSColorPalette) { self.palette = palette }
+}
+
+public struct DSDefaultChatColors: DSChatColors {
     public let palette: any DSColorPalette
     public init(palette: any DSColorPalette) { self.palette = palette }
 }

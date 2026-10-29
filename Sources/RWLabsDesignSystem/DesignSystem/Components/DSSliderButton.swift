@@ -2,141 +2,178 @@
 //  DSSliderButton.swift
 //  RWLabsDesignSystem
 //
-//  A draggable slider button component that requires users to drag to completion
+//  Swipe-to-confirm button matching the Figma "Swipe button":
+//    Inactive  knob on the left, label centered
+//    Swipe     knob follows the finger, label fades
+//    Confirm   past the threshold the track turns brand coral and the knob shows a check
+//
+//  DSSliderButton(title: "Let's get started") { start() }
 //
 
 import SwiftUI
 
-/// A slider button component that requires dragging to trigger an action.
-/// Users must drag the thumb across the track to a threshold to complete the action.
 public struct DSSliderButton: View {
-    /// The title text displayed on the slider
-    var title: String
-
-    /// The background color of the track
-    var trackBackgroundColor: Color = Color.Background.primary
-
-    /// The color of the draggable thumb
-    var thumbColor: Color = Color.Icon.brand
-
-    /// The color of the text
-    var textColor: Color = Color.Text.primary
-
-    /// The color of the icon inside the thumb
-    var iconColor: Color = Color.Text.primary
-
-    /// Callback triggered when the slider is successfully dragged to completion
+    let title: String
+    let resetsAfterCompletion: Bool
     let onComplete: () -> Void
 
     @State private var dragOffset: CGFloat = 0
-    @State private var isDragging: Bool = false
+    @State private var isConfirmed = false
 
-    private let sliderHeight: CGFloat = 60
-    private let thumbSize: CGFloat = 40
-    private let minDragThreshold: CGFloat = 0.78 // 78% of available drag width
+    private let height: CGFloat = 60
+    private let knobSize: CGFloat = 40
+    private let inset: CGFloat = .sm
+    /// Share of the travel the knob must pass to confirm.
+    private let threshold: CGFloat = 0.78
 
+    /// - Parameter resetsAfterCompletion: Slide the knob back a second after confirming.
     public init(
         title: String,
-        trackBackgroundColor: Color = Color.Background.primary,
+        resetsAfterCompletion: Bool = true,
+        onComplete: @escaping () -> Void
+    ) {
+        self.title = title
+        self.resetsAfterCompletion = resetsAfterCompletion
+        self.onComplete = onComplete
+    }
+
+    @available(*, deprecated, message: "Colors come from the theme; use init(title:resetsAfterCompletion:onComplete:)")
+    public init(
+        title: String,
+        trackBackgroundColor: Color,
         thumbColor: Color = Color.Icon.brand,
         textColor: Color = Color.Text.primary,
         iconColor: Color = Color.Text.primary,
         onComplete: @escaping () -> Void
     ) {
-        self.title = title
-        self.trackBackgroundColor = trackBackgroundColor
-        self.thumbColor = thumbColor
-        self.textColor = textColor
-        self.iconColor = iconColor
-        self.onComplete = onComplete
+        self.init(title: title, onComplete: onComplete)
     }
 
     public var body: some View {
         GeometryReader { geometry in
-            let sliderWidth = geometry.size.width
-            let maxDragDistance = sliderWidth - thumbSize - .sm * 2
-            let dragThreshold = maxDragDistance * minDragThreshold
+            let travel = max(geometry.size.width - knobSize - inset * 2, 1)
 
-            ZStack(alignment: .leading) {
-                // Background track
-                RoundedRectangle(cornerRadius: 30)
-                    .fill(trackBackgroundColor)
-                    .shadow(.lg)
-
-                // Text (fades as user drags)
-                HStack {
-                    Spacer()
-
-                    DSText(title, style: .bodySmallMedium, color: textColor)
-                        .tracking(-0.15)
-
-                    Spacer()
-                }
-                .opacity(max(0, 1 - Double(dragOffset / (maxDragDistance * 0.25))))
-                .animation(.easeInOut(duration: 0.2), value: dragOffset)
-
-                // Draggable thumb (chevron + circle)
-                HStack(spacing: .sm) {
-                    ZStack {
-                        Circle()
-                            .fill(thumbColor)
-                            .shadow(.sm)
-
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 12, weight: .regular))
-                            .foregroundColor(iconColor)
+            DSSwipeTrack(
+                title: title,
+                progress: dragOffset / travel,
+                isConfirmed: isConfirmed,
+                knobOffset: dragOffset,
+                knobSize: knobSize,
+                inset: inset
+            )
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        guard !isConfirmed else { return }
+                        dragOffset = min(max(0, value.translation.width), travel)
                     }
-                    .frame(width: thumbSize, height: thumbSize)
-
-                    Spacer()
-                }
-                .frame(height: sliderHeight)
-                .padding(.horizontal, .sm)
-                .offset(x: dragOffset)
-                .gesture(
-                    DragGesture()
-                        .onChanged { value in
-                            let newOffset = value.translation.width
-                            // Constrain drag to slider bounds
-                            dragOffset = max(0, min(newOffset, maxDragDistance))
-                            isDragging = true
+                    .onEnded { _ in
+                        guard !isConfirmed else { return }
+                        if dragOffset >= travel * threshold {
+                            complete(travel: travel)
+                        } else {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { dragOffset = 0 }
                         }
-                        .onEnded { value in
-                            let finalOffset = dragOffset
-
-                            // Check if dragged far enough to trigger
-                            if finalOffset >= dragThreshold {
-                                // Animate to complete state
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                                    dragOffset = maxDragDistance
-                                }
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                    onComplete()
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                                        self.resetSlider()
-                                    }
-                                }
-                            } else {
-                                self.resetSlider()
-                            }
-                            isDragging = false
-                        }
-                )
-            }
+                    }
+            )
+            .accessibilityElement()
+            .accessibilityLabel(title)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { complete(travel: travel) }
         }
+        .frame(height: height)
+        .sensoryFeedback(.success, trigger: isConfirmed) { _, new in new }
     }
-    
-    private func resetSlider() {
+
+    private func complete(travel: CGFloat) {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-            dragOffset = 0
+            dragOffset = travel
+            isConfirmed = true
+        }
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.3))
+            onComplete()
+            guard resetsAfterCompletion else { return }
+            try? await Task.sleep(for: .seconds(1))
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                dragOffset = 0
+                isConfirmed = false
+            }
         }
     }
 }
 
-#Preview {
-    DSSliderButton(title: "Let's get started") {
-        print("Slider completed!")
+// MARK: - Track
+/// The drawn button for a given drag position; the parent owns the gesture.
+struct DSSwipeTrack: View {
+    let title: String
+    /// 0 at rest, 1 at the right end
+    let progress: CGFloat
+    let isConfirmed: Bool
+    let knobOffset: CGFloat
+    let knobSize: CGFloat
+    let inset: CGFloat
+
+    var body: some View {
+        ZStack(alignment: .leading) {
+            Capsule()
+                .fill(isConfirmed ? Color.Swipe.confirmedTrack : Color.Swipe.track)
+                .shadow(color: isConfirmed ? .black.opacity(0.25) : Color.Selection.shadow,
+                        radius: isConfirmed ? 0.5 : 4, y: isConfirmed ? 1 : 0)
+
+            Text(title)
+                .fontStyle(.bodyMedium)
+                .foregroundColor(.Swipe.label)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, knobSize + inset * 2)
+                .opacity(isConfirmed ? 0 : max(0, 1 - Double(progress) * 2))
+
+            ZStack {
+                Circle()
+                    .fill(isConfirmed ? Color.Swipe.confirmedKnob : Color.Swipe.knob)
+                    .shadow(color: .black.opacity(0.25), radius: 0.5, y: 2)
+                Image(systemName: isConfirmed ? "checkmark" : "chevron.right")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(isConfirmed ? .Swipe.confirmedIcon : .Swipe.knobIcon)
+            }
+            .frame(width: knobSize, height: knobSize)
+            .padding(.leading, inset)
+            .offset(x: knobOffset)
+        }
     }
-    .frame(height: 60)
-    .padding()
+}
+
+// MARK: - Preview
+/// Mirrors the Figma Swipe button sheet (Inactive, Swipe, Confirm), then a live button.
+private struct DSSliderButtonGallery: View {
+    var body: some View {
+        VStack(spacing: .lg) {
+            DSSwipeTrack(title: "Let’s get started", progress: 0, isConfirmed: false, knobOffset: 0, knobSize: 40, inset: .sm)
+                .frame(height: 60)
+            DSSwipeTrack(title: "Let’s get started", progress: 0.5, isConfirmed: false, knobOffset: 150, knobSize: 40, inset: .sm)
+                .frame(height: 60)
+            DSSwipeTrack(title: "Let’s get started", progress: 1, isConfirmed: true, knobOffset: 295, knobSize: 40, inset: .sm)
+                .frame(width: 359, height: 60)
+            DSSliderButton(title: "Swipe to confirm") {}
+        }
+        .padding()
+        .frame(maxHeight: .infinity, alignment: .top)
+        .background(Color.Background.primary)
+    }
+}
+
+#Preview("RWLabs") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSSliderButtonGallery().designSystem()
+}
+
+#Preview("RWLabs Dark") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSSliderButtonGallery().designSystem().preferredColorScheme(.dark)
+}
+
+#Preview("BW") {
+    DesignSystem.configure(theme: BWTheme())
+    return DSSliderButtonGallery().designSystem()
 }

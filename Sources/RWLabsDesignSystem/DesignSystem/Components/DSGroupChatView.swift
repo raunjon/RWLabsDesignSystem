@@ -1,8 +1,9 @@
 //
 //  DSGroupChatView.swift
-//  RWLDesignSystem
+//  RWLabsDesignSystem
 //
-//  Created on 2025-12-15.
+//  Group chat built from the Figma chat pieces: `DSChatHeader`, date pills, `DSChatBubble`
+//  with sender names, and `DSChatInput`.
 //
 
 import SwiftUI
@@ -20,6 +21,7 @@ public struct DSChatMessage: Identifiable {
     public let isSentByCurrentUser: Bool
     public let status: DSChatMessageStatus?
     public let messageType: MessageType
+    public let reactions: [DSChatReaction]
 
     public enum MessageType {
         case text
@@ -36,7 +38,8 @@ public struct DSChatMessage: Identifiable {
         date: String,
         isSentByCurrentUser: Bool,
         status: DSChatMessageStatus? = nil,
-        messageType: MessageType = .text
+        messageType: MessageType = .text,
+        reactions: [DSChatReaction] = []
     ) {
         self.id = id
         self.message = message
@@ -48,6 +51,7 @@ public struct DSChatMessage: Identifiable {
         self.isSentByCurrentUser = isSentByCurrentUser
         self.status = status
         self.messageType = messageType
+        self.reactions = reactions
     }
 }
 
@@ -76,7 +80,7 @@ public struct DSGroupChatMember: Identifiable {
 }
 
 // MARK: - Date Separator
-
+/// Same as `DSChatDatePill`; kept for existing callers.
 public struct DSChatDateSeparator: View {
     let date: String
 
@@ -85,19 +89,7 @@ public struct DSChatDateSeparator: View {
     }
 
     public var body: some View {
-        HStack {
-            Rectangle()
-                .fill(Color.Border.subtle)
-                .frame(height: 1)
-
-            DSText(date, style: .label, color: .Text.secondary)
-                .padding(.horizontal, .sm)
-
-            Rectangle()
-                .fill(Color.Border.subtle)
-                .frame(height: 1)
-        }
-        .padding(.vertical, .md)
+        DSChatDatePill(date)
     }
 }
 
@@ -115,8 +107,8 @@ public struct DSTypingIndicator: View {
         HStack(alignment: .bottom, spacing: .xs) {
             // Avatar placeholder
             Circle()
-                .fill(Color.Background.secondary)
-                .frame(width: 32, height: 32)
+                .fill(Color.Chat.surface)
+                .frame(width: 28, height: 28)
                 .overlay(
                     Image(systemName: "ellipsis")
                         .fontStyle(.label)
@@ -137,8 +129,8 @@ public struct DSTypingIndicator: View {
                 }
                 .padding(.horizontal, .sm)
                 .padding(.vertical, .xs)
-                .background(Color.Background.tertiary)
-                .cornerRadius(.radiusMD)
+                .background(Color.Chat.surface)
+                .cornerRadius(.radiusLG)
             }
 
             Spacer(minLength: 40)
@@ -197,63 +189,29 @@ public struct DSGroupChatHeader: View {
     }
 
     public var body: some View {
-        HStack(spacing: .sm) {
-            // Back button
-            Button(action: onBackTapped) {
-                Image(systemName: "chevron.left")
-                    .fontStyle(.heading3)
-                    .foregroundColor(Color.Icon.brand)
-            }
-
-            // Group avatar
-            if let groupAvatar = groupAvatar {
-                Image(groupAvatar)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 40, height: 40)
-                    .clipShape(Circle())
+        DSChatHeader(
+            name: groupName,
+            presence: .text("\(memberCount) members, \(onlineCount) online"),
+            onBack: onBackTapped
+        ) {
+            if let groupAvatar {
+                Image(groupAvatar).resizable().scaledToFill()
             } else {
-                Circle()
-                    .fill(Color.Icon.brandAccent)
-                    .frame(width: 40, height: 40)
-                    .overlay(
-                        Image(systemName: "person.3.fill")
-                            .fontStyle(.body)
-                            .foregroundColor(Color.Icon.brand)
-                    )
+                Image(systemName: "person.3.fill")
+                    .font(.system(size: 14))
+                    .foregroundColor(.Chat.icon)
+                    .frame(width: 36, height: 36)
+                    .background(Color.Chat.surface)
             }
-
-            // Group info
-            VStack(alignment: .leading, spacing: 2) {
-                DSText(groupName, style: .heading3, color: .Text.primary)
-                    .fontWeight(.semibold)
-
-                DSText("\(memberCount) members, \(onlineCount) online", style: .label, color: .Text.secondary)
-            }
-
-            Spacer()
-
-            // Info button
-            Button(action: onInfoTapped) {
-                Image(systemName: "info.circle")
-                    .font(.system(size: 28))
-                    .foregroundColor(Color.Icon.brand)
-            }
+        } actions: {
+            Button(action: onInfoTapped) { Image(systemName: "info.circle") }
+                .accessibilityLabel("Group info")
         }
-        .padding(.horizontal, .md)
-        .padding(.vertical, .sm)
-        .background(Color.Background.primary)
-        .overlay(
-            Rectangle()
-                .fill(Color.Border.subtle)
-                .frame(height: 1),
-            alignment: .bottom
-        )
     }
 }
 
 // MARK: - Group Chat Input
-
+@available(*, deprecated, message: "Use DSChatInput, which adds the Figma voice states")
 public struct DSGroupChatInput: View {
     @Binding var text: String
     let onSendTapped: () -> Void
@@ -270,50 +228,7 @@ public struct DSGroupChatInput: View {
     }
 
     public var body: some View {
-        HStack(spacing: .sm) {
-            // Attach button
-            Button(action: onAttachTapped) {
-                Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 28))
-                    .foregroundColor(Color.Icon.brand)
-                    .background(Color.Background.primary)
-            }
-
-            // Text input
-            HStack(spacing: .xs) {
-                TextField("Type a message...", text: $text)
-                    .fontStyle(.body)
-                    .foregroundColor(Color.Text.primary)
-
-                // Emoji button
-                Button(action: {}) {
-                    Image(systemName: "face.smiling")
-                        .fontStyle(.heading3)
-                        .foregroundColor(Color.Background.secondaryInverse)
-                }
-            }
-            .padding(.horizontal, .sm)
-            .padding(.vertical, .xs)
-            .background(Color.Background.secondary)
-            .cornerRadius(.radiusFull)
-
-            // Send button
-            Button(action: onSendTapped) {
-                Image(systemName: text.isEmpty ? "arrow.up.circle" : "arrow.up.circle.fill")
-                    .font(.system(size: 32))
-                    .foregroundColor(text.isEmpty ? Color.Button.disabled: Color.Button.primary)
-            }
-            .disabled(text.isEmpty)
-        }
-        .padding(.horizontal, .md)
-        .padding(.vertical, .sm)
-        .background(Color.Background.primary)
-        .overlay(
-            Rectangle()
-                .fill(Color.Border.subtle)
-                .frame(height: 1),
-            alignment: .top
-        )
+        DSChatInput(text: $text, actions: .init(onAttach: onAttachTapped), onSend: onSendTapped)
     }
 }
 
@@ -392,28 +307,33 @@ public struct DSGroupMemberAvatars: View {
 }
 
 // MARK: - Group Chat View
-
 public struct DSGroupChatView: View {
     let groupName: String
     let groupAvatar: String?
     let members: [DSGroupChatMember]
     let messages: [DSChatMessage]
     let typingUsers: [String]
+    let voiceState: DSChatVoiceState
+    let inputActions: DSChatInputActions?
 
     @State private var messageText: String = ""
-    @State private var scrollProxy: ScrollViewProxy?
 
     let onBackTapped: () -> Void
     let onInfoTapped: () -> Void
     let onSendMessage: (String) -> Void
     let onAttachTapped: () -> Void
 
+    /// - Parameters:
+    ///   - inputActions: Typing-field actions; when nil, only attach is wired (to `onAttachTapped`).
+    ///   - onSendMessage: Receives the typed text; empty when sending a finished voice recording.
     public init(
         groupName: String,
         groupAvatar: String? = nil,
         members: [DSGroupChatMember],
         messages: [DSChatMessage],
         typingUsers: [String] = [],
+        voiceState: DSChatVoiceState = .idle,
+        inputActions: DSChatInputActions? = nil,
         onBackTapped: @escaping () -> Void = {},
         onInfoTapped: @escaping () -> Void = {},
         onSendMessage: @escaping (String) -> Void = { _ in },
@@ -424,6 +344,8 @@ public struct DSGroupChatView: View {
         self.members = members
         self.messages = messages
         self.typingUsers = typingUsers
+        self.voiceState = voiceState
+        self.inputActions = inputActions
         self.onBackTapped = onBackTapped
         self.onInfoTapped = onInfoTapped
         self.onSendMessage = onSendMessage
@@ -432,7 +354,6 @@ public struct DSGroupChatView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Header
             DSGroupChatHeader(
                 groupName: groupName,
                 groupAvatar: groupAvatar,
@@ -442,112 +363,18 @@ public struct DSGroupChatView: View {
                 onInfoTapped: onInfoTapped
             )
 
-            // Messages
-            ScrollViewReader { proxy in
-                if #available(iOS 17.0, *) {
-                    ScrollView {
-                        LazyVStack(spacing: .sm) {
-                            ForEach(groupedMessages, id: \.date) { group in
-                                DSChatDateSeparator(date: group.date)
-                                
-                                ForEach(group.messages) { message in
-                                    messageView(for: message)
-                                        .id(message.id)
-                                }
-                            }
-                            
-                            // Typing indicator
-                            if !typingUsers.isEmpty {
-                                DSTypingIndicator(userNames: typingUsers)
-                                    .id("typing-indicator")
-                            }
-                        }
-                        .padding(.horizontal, .md)
-                        .padding(.vertical, .sm)
-                    }
-                    .onAppear {
-                        scrollProxy = proxy
-                        scrollToBottom()
-                    }
-                    .onChange(of: messages.count) { _, _ in
-                        scrollToBottom()
-                    }
-                } else {
-                    // Fallback on earlier versions
-                }
-            }
+            DSChatMessageList(messages: messages, typingUsers: typingUsers, showsSenderNames: true)
 
-            // Input
-            DSGroupChatInput(
+            DSChatInput(
                 text: $messageText,
-                onSendTapped: {
-                    guard !messageText.isEmpty else { return }
-                    onSendMessage(messageText)
-                    messageText = ""
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        scrollToBottom()
-                    }
-                },
-                onAttachTapped: onAttachTapped
-            )
-        }
-        .background(Color.Background.primary)
-    }
-
-    @ViewBuilder
-    private func messageView(for message: DSChatMessage) -> some View {
-        VStack(alignment: message.isSentByCurrentUser ? .trailing : .leading, spacing: .xxs) {
-            // Show sender name for group chat (only for received messages)
-            if !message.isSentByCurrentUser {
-                DSText(message.senderName, style: .label, color: .Text.secondary)
-                    .padding(.leading, 40)
-            }
-
-            switch message.messageType {
-            case .text:
-                DSChatBubble(
-                    message: message.message,
-                    variant: message.isSentByCurrentUser ? .sender : .receiver,
-                    timestamp: message.timestamp,
-                    status: message.isSentByCurrentUser ? message.status : nil,
-                    showAvatar: true,
-                    avatarImage: message.senderAvatar,
-                    avatarInitials: message.senderInitials
-                )
-
-            case .image(let url, let caption):
-                DSChatMediaBubble(
-                    imageURL: url,
-                    caption: caption,
-                    variant: message.isSentByCurrentUser ? .sender : .receiver,
-                    timestamp: message.timestamp,
-                    status: message.isSentByCurrentUser ? message.status : nil,
-                    showAvatar: true,
-                    avatarImage: message.senderAvatar,
-                    avatarInitials: message.senderInitials
-                )
+                voiceState: voiceState,
+                actions: inputActions ?? .init(onAttach: onAttachTapped)
+            ) {
+                onSendMessage(messageText)
+                messageText = ""
             }
         }
-    }
-
-    private var groupedMessages: [(date: String, messages: [DSChatMessage])] {
-        let grouped = Dictionary(grouping: messages) { $0.date }
-        return grouped.map { (date: $0.key, messages: $0.value) }
-            .sorted { $0.date < $1.date }
-    }
-
-    private func scrollToBottom() {
-        guard let proxy = scrollProxy else { return }
-
-        if !typingUsers.isEmpty {
-            withAnimation {
-                proxy.scrollTo("typing-indicator", anchor: .bottom)
-            }
-        } else if let lastMessage = messages.last {
-            withAnimation {
-                proxy.scrollTo(lastMessage.id, anchor: .bottom)
-            }
-        }
+        .background(Color.Chat.bar)
     }
 }
 

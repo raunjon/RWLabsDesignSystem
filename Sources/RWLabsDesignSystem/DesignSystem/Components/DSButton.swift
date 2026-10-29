@@ -24,6 +24,8 @@ public enum DSButtonVariant: CaseIterable, Sendable {
     case tertiary
     /// Error fill, white label
     case destructive
+    /// Dark neutral fill, light label (Figma popup cards)
+    case inverse
     /// No fill, primary text color
     case ghost
     /// Underlined text, no fill
@@ -37,7 +39,7 @@ public enum DSButtonVariant: CaseIterable, Sendable {
 
     /// Variants that switch to the disabled fill when disabled; the rest fade instead.
     var usesDisabledFill: Bool {
-        self == .primary || self == .destructive
+        self == .primary || self == .destructive || self == .inverse
     }
 
     @MainActor
@@ -47,6 +49,7 @@ public enum DSButtonVariant: CaseIterable, Sendable {
         case .secondary:   isPressed ? .Button.secondaryPressed   : .Button.secondary
         case .tertiary:    isPressed ? .Button.tertiaryPressed    : .Button.tertiary
         case .destructive: isPressed ? .Button.destructivePressed : .Button.destructive
+        case .inverse:     isPressed ? .Button.inversePressed     : .Button.inverse
         case .ghost:       isPressed ? .Button.secondary          : .clear
         case .link, .brandLink: .clear
         }
@@ -59,6 +62,7 @@ public enum DSButtonVariant: CaseIterable, Sendable {
         case .secondary:    .Button.secondaryText
         case .tertiary:     .Button.tertiaryText
         case .destructive:  .Button.destructiveText
+        case .inverse:      .Button.inverseText
         case .ghost, .link: .Button.linkText
         case .brandLink:    .Button.brandLinkText
         }
@@ -225,6 +229,11 @@ public extension View {
     /// Error fill.
     func destructiveButtonStyle(size: DSButtonSize = .large) -> some View {
         dsButtonStyle(.destructive, size: size)
+    }
+
+    /// Dark neutral fill, as on the Figma popup cards.
+    func inverseButtonStyle(size: DSButtonSize = .large) -> some View {
+        dsButtonStyle(.inverse, size: size)
     }
 
     /// No fill until pressed.

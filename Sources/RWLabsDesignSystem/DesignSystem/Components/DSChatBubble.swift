@@ -1,69 +1,58 @@
 //
 //  DSChatBubble.swift
-//  RWLDesignSystem
+//  RWLabsDesignSystem
 //
-//  Created on 2025-12-15.
+//  Chat messages matching the Figma "Chat messages":
+//    Receiver  28pt avatar, sender name, light gray bubble (small bottom-left corner), time inside
+//    Sender    dark navy bubble on the right (small bottom-right corner), time inside
+//  Both can carry a row of emoji reactions under the bubble.
+//
+//  DSChatBubble(message: "Hi!", variant: .receiver, timestamp: "9:00 AM", senderName: "Ana",
+//               reactions: [.init("🔥", count: 12)], avatarInitials: "AS")
 //
 
 import SwiftUI
 
 // MARK: - Chat Bubble Variant
-
 public enum DSChatBubbleVariant {
     case sender
     case receiver
 
     @MainActor
     var backgroundColor: Color {
-        switch self {
-        case .sender:
-            return Color.Background.brand
-        case .receiver:
-            return Color.Background.secondary
-        }
+        self == .sender ? .Chat.senderBubble : .Chat.surface
     }
 
     @MainActor
     var textColor: Color {
-        switch self {
-        case .sender:
-            return Color.Text.white
-        case .receiver:
-            return Color.Text.primary
-        }
+        self == .sender ? .Chat.senderText : .Chat.receiverText
     }
 
     @MainActor
     var timestampColor: Color {
-        switch self {
-        case .sender:
-            return Color.Text.white.opacity(0.7)
-        case .receiver:
-            return Color.Text.secondary
-        }
+        self == .sender ? .Chat.senderTime : .Chat.receiverTime
     }
 
     var alignment: HorizontalAlignment {
-        switch self {
-        case .sender:
-            return .trailing
-        case .receiver:
-            return .leading
-        }
+        self == .sender ? .trailing : .leading
     }
 
     var bubbleAlignment: Alignment {
-        switch self {
-        case .sender:
-            return .topTrailing
-        case .receiver:
-            return .topLeading
-        }
+        self == .sender ? .topTrailing : .topLeading
+    }
+
+    /// 16pt corners with a 4pt corner pointing at the speaker.
+    var shape: UnevenRoundedRectangle {
+        UnevenRoundedRectangle(
+            topLeadingRadius: .radiusLG,
+            bottomLeadingRadius: self == .receiver ? .radiusXS : .radiusLG,
+            bottomTrailingRadius: self == .sender ? .radiusXS : .radiusLG,
+            topTrailingRadius: .radiusLG
+        )
     }
 }
 
 // MARK: - Message Status
-
 public enum DSChatMessageStatus {
     case sending
     case sent
@@ -73,67 +62,146 @@ public enum DSChatMessageStatus {
 
     var icon: String {
         switch self {
-        case .sending:
-            return "clock"
-        case .sent:
-            return "checkmark"
-        case .delivered:
-            return "checkmark.circle"
-        case .read:
-            return "checkmark.circle.fill"
-        case .failed:
-            return "exclamationmark.circle"
+        case .sending:   "clock"
+        case .sent:      "checkmark"
+        case .delivered: "checkmark.circle"
+        case .read:      "checkmark.circle.fill"
+        case .failed:    "exclamationmark.circle"
         }
     }
 
     @MainActor
     var iconColor: Color {
         switch self {
-        case .sending:
-            return Color.Icon.white.opacity(0.6)
-        case .sent:
-            return Color.Icon.white.opacity(0.6)
-        case .delivered:
-            return Color.Icon.primary.opacity(0.8)
-        case .read:
-            return Color.Semantic.success
-        case .failed:
-            return Color.Semantic.error
+        case .sending, .sent, .delivered: .Chat.senderTime
+        case .read:                       .Semantic.success
+        case .failed:                     .Semantic.error
         }
     }
 }
 
-// MARK: - Chat Bubble Component
+// MARK: - Reactions
+public struct DSChatReaction: Hashable, Sendable {
+    public let emoji: String
+    public let count: Int
 
+    public init(_ emoji: String, count: Int) {
+        self.emoji = emoji
+        self.count = count
+    }
+}
+
+/// The chip of emoji counts under a message.
+public struct DSChatReactions: View {
+    let reactions: [DSChatReaction]
+
+    public init(_ reactions: [DSChatReaction]) {
+        self.reactions = reactions
+    }
+
+    public var body: some View {
+        HStack(spacing: .xxs) {
+            ForEach(reactions, id: \.self) { reaction in
+                HStack(spacing: 2) {
+                    Text(reaction.emoji)
+                        .font(.system(size: 11))
+                    Text("\(reaction.count)")
+                        .fontStyle(.caption)
+                        .foregroundColor(.Chat.reactionCount)
+                }
+            }
+        }
+        .padding(.horizontal, 5)
+        .padding(.vertical, 3)
+        .frame(height: 22)
+        .background(RoundedRectangle(cornerRadius: .radiusMD).fill(Color.Chat.surface))
+        .overlay(RoundedRectangle(cornerRadius: .radiusMD).strokeBorder(Color.Chat.reactionBorder, lineWidth: .thin))
+        .accessibilityElement(children: .combine)
+    }
+}
+
+// MARK: - Avatar
+/// Round avatar used across chat: an asset, a remote image, or initials.
+public struct DSChatAvatar: View {
+    let imageName: String?
+    let imageURL: URL?
+    let initials: String?
+    let size: CGFloat
+
+    public init(imageName: String? = nil, imageURL: URL? = nil, initials: String? = nil, size: CGFloat = 28) {
+        self.imageName = imageName
+        self.imageURL = imageURL
+        self.initials = initials
+        self.size = size
+    }
+
+    public var body: some View {
+        Group {
+            if let imageURL {
+                CachedAsyncImage(url: imageURL, aspectRatio: .fill) { initialsView }
+            } else if let imageName {
+                Image(imageName).resizable().scaledToFill()
+            } else {
+                initialsView
+            }
+        }
+        .frame(width: size, height: size)
+        .clipShape(Circle())
+    }
+
+    private var initialsView: some View {
+        ZStack {
+            Circle().fill(Color.Chat.surface)
+            if let initials, !initials.isEmpty {
+                Text(initials)
+                    .font(.system(size: size * 0.38, weight: .medium))
+                    .foregroundColor(.Text.brand)
+            } else {
+                Image(systemName: "person.fill")
+                    .font(.system(size: size * 0.45))
+                    .foregroundColor(.Chat.receiverTime)
+            }
+        }
+    }
+}
+
+// MARK: - Chat Bubble
 public struct DSChatBubble: View {
     let message: String
     let variant: DSChatBubbleVariant
     let timestamp: String?
     let status: DSChatMessageStatus?
+    let senderName: String?
+    let reactions: [DSChatReaction]
     let showAvatar: Bool
     let avatarImage: String?
     let avatarInitials: String?
     let avatarURL: URL?
     let maxWidth: CGFloat
-    private var size: DSAvatar.AvatarSize {
-        .medium
-    }
 
+    /// - Parameters:
+    ///   - senderName: Shown above received messages (Figma "Name").
+    ///   - showAvatar: Received messages only. `false` keeps the indent, for follow-up messages.
+    ///   - maxWidth: Bubble width limit; Figma uses 257.
     public init(
         message: String,
         variant: DSChatBubbleVariant,
         timestamp: String? = nil,
         status: DSChatMessageStatus? = nil,
+        senderName: String? = nil,
+        reactions: [DSChatReaction] = [],
         showAvatar: Bool = true,
         avatarImage: String? = nil,
         avatarURL: URL? = nil,
         avatarInitials: String? = nil,
-        maxWidth: CGFloat = 280
+        maxWidth: CGFloat = 257
     ) {
         self.message = message
         self.variant = variant
         self.timestamp = timestamp
         self.status = status
+        self.senderName = senderName
+        self.reactions = reactions
         self.showAvatar = showAvatar
         self.avatarImage = avatarImage
         self.avatarURL = avatarURL
@@ -142,102 +210,60 @@ public struct DSChatBubble: View {
     }
 
     public var body: some View {
-        HStack(alignment: .bottom, spacing: .xs) {
-            if variant == .receiver && showAvatar {
-                avatarView
-            } else if variant == .sender && showAvatar {
-                Spacer(minLength: 40)
+        HStack(alignment: .top, spacing: .xs) {
+            if variant == .receiver {
+                DSChatAvatar(imageName: avatarImage, imageURL: avatarURL, initials: avatarInitials)
+                    .opacity(showAvatar ? 1 : 0)
             }
 
             VStack(alignment: variant.alignment, spacing: .xxs) {
-                // Message bubble
-                VStack(alignment: .leading, spacing: .xxs) {
-                    DSText(message, style: .body, color: variant.textColor)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    // Timestamp and status
-                    if timestamp != nil || status != nil {
-                        HStack(spacing: .xxs) {
-                            if let timestamp = timestamp {
-                                DSText(timestamp, style: .label, color: variant.timestampColor)
-                            }
-
-                            if let status = status, variant == .sender {
-                                Image(systemName: status.icon)
-                                    .foregroundColor(status.iconColor)
-                            }
-                        }
-                    }
+                if variant == .receiver, let senderName {
+                    Text(senderName)
+                        .fontStyle(.bodySmallMedium)
+                        .foregroundColor(.Chat.title)
+                        .padding(.leading, .xxs)
                 }
-                .padding(.horizontal, .sm)
-                .padding(.vertical, .xs)
-                .background(variant.backgroundColor)
-                .cornerRadius(.lg)
-                .shadow(.sm)
-            }
-            .frame(maxWidth: maxWidth, alignment: variant.bubbleAlignment)
 
-            if variant == .sender && showAvatar {
-                avatarView
-            } else if variant == .receiver && showAvatar {
-                Spacer(minLength: 40)
+                bubble
+
+                if !reactions.isEmpty {
+                    DSChatReactions(reactions)
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: variant.bubbleAlignment)
     }
 
-    @ViewBuilder
-    private var avatarView: some View {
-        if let avatarURL = avatarURL {
-            DSAvatar(
-                imageURL: avatarURL,
-                imageName: nil,
-                initials: "",
-                size: .medium,
-                status: .none,
-                aspectRatio: .fit
-            )
+    private var bubble: some View {
+        VStack(alignment: variant.alignment, spacing: .xxs) {
+            Text(message)
+                .fontStyle(.bodySmall)
+                .foregroundColor(variant.textColor)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if timestamp != nil || status != nil {
+                HStack(spacing: .xxs) {
+                    if let timestamp {
+                        Text(timestamp)
+                            .fontStyle(.caption)
+                            .foregroundColor(variant.timestampColor)
+                    }
+                    if let status, variant == .sender {
+                        Image(systemName: status.icon)
+                            .font(.system(size: 10))
+                            .foregroundColor(status.iconColor)
+                    }
+                }
+            }
         }
-        else if let avatarImage = avatarImage {
-            Image(avatarImage)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 32, height: 32)
-                .clipShape(Circle())
-        } else if let avatarInitials = avatarInitials {
-            initialsView
-        } else {
-            placeholderView
-        }
-    }
-    
-    var initialsView: some View {
-        if let avatarInitials = avatarInitials, !avatarInitials.isEmpty {
-            AnyView(Circle()
-                .fill(Color.Icon.brand)
-                .frame(width: 32, height: 32)
-                .overlay(
-                    DSText(avatarInitials ?? "", style: .bodySmallMedium, color: Color.Icon.brandAccent)
-                ))
-        } else {
-            AnyView(placeholderView)
-        }
-    }
-    
-    var placeholderView: some View {
-        Circle()
-            .fill(Color.Background.secondary)
-            .frame(width: 32, height: 32)
-            .overlay(
-                Image(systemName: "person.fill")
-                    .fontStyle(.bodySmallMedium)
-                    .foregroundColor(Color.Background.secondaryInverse)
-            )
+        .padding(.horizontal, .sm)
+        .padding(.vertical, .xs)
+        .background(variant.shape.fill(variant.backgroundColor))
+        .frame(maxWidth: maxWidth, alignment: variant.bubbleAlignment)
     }
 }
 
 // MARK: - Chat Message Group
-
 public struct DSChatMessageGroup: View {
     let messages: [(String, String?, DSChatMessageStatus?)]
     let variant: DSChatBubbleVariant
@@ -270,7 +296,7 @@ public struct DSChatMessageGroup: View {
                     variant: variant,
                     timestamp: index == messages.count - 1 ? message.1 : nil,
                     status: index == messages.count - 1 ? message.2 : nil,
-                    showAvatar: index == messages.count - 1 ? showAvatar : false,
+                    showAvatar: index == 0 ? showAvatar : false,
                     avatarImage: avatarImage,
                     avatarInitials: avatarInitials
                 )
@@ -279,8 +305,7 @@ public struct DSChatMessageGroup: View {
     }
 }
 
-// MARK: - Typed Chat Bubble (Image Support)
-
+// MARK: - Media Bubble
 public struct DSChatMediaBubble: View {
     let imageURL: String?
     let caption: String?
@@ -312,245 +337,96 @@ public struct DSChatMediaBubble: View {
     }
 
     public var body: some View {
-        HStack(alignment: .bottom, spacing: .xs) {
-            if variant == .receiver && showAvatar {
-                avatarView
-            } else if variant == .sender && showAvatar {
-                Spacer(minLength: 40)
+        HStack(alignment: .top, spacing: .xs) {
+            if variant == .receiver {
+                DSChatAvatar(imageName: avatarImage, initials: avatarInitials)
+                    .opacity(showAvatar ? 1 : 0)
             }
 
-            VStack(alignment: variant.alignment, spacing: .xxs) {
-                VStack(alignment: .leading, spacing: .xxs) {
-                    // Image placeholder
-                    if let imageURL = imageURL {
-                        AsyncImage(url: URL(string: imageURL)) { image in
-                            image
-                                .resizable()
-                                .scaledToFill()
-                        } placeholder: {
-                            Rectangle()
-                                .fill(Color.Background.secondary)
-                                .overlay(
-                                    ProgressView()
-                                )
-                        }
-                        .frame(width: 200, height: 150)
-                        .cornerRadius(.md)
-                    } else {
-                        Rectangle()
-                            .fill(Color.Background.secondary)
-                            .frame(width: 200, height: 150)
-                            .cornerRadius(.md)
-                            .overlay(
-                                Image(systemName: "photo")
-                                    .foregroundColor(Color.Icon.placeholder)
-                            )
-                    }
+            VStack(alignment: .leading, spacing: .xxs) {
+                image
 
-                    // Caption
-                    if let caption = caption {
-                        DSText(caption, style: .bodySmallMedium, color: variant.textColor)
-                            .padding(.horizontal, .xs)
-                    }
-
-                    // Timestamp and status
-                    if timestamp != nil || status != nil {
-                        HStack(spacing: .xxs) {
-                            if let timestamp = timestamp {
-                                DSText(timestamp, style: .label, color: variant.timestampColor)
-                            }
-
-                            if let status = status, variant == .sender {
-                                Image(systemName: status.icon)
-                                    .foregroundColor(status.iconColor)
-                            }
-                        }
+                if let caption {
+                    Text(caption)
+                        .fontStyle(.bodySmall)
+                        .foregroundColor(variant.textColor)
                         .padding(.horizontal, .xs)
-                    }
                 }
-                .padding(.xxs)
-                .background(variant.backgroundColor)
-                .cornerRadius(.lg)
-                .shadow(.sm)
-            }
 
-            if variant == .sender && showAvatar {
-                avatarView
-            } else if variant == .receiver && showAvatar {
-                Spacer(minLength: 40)
+                if timestamp != nil || status != nil {
+                    HStack(spacing: .xxs) {
+                        if let timestamp {
+                            Text(timestamp)
+                                .fontStyle(.caption)
+                                .foregroundColor(variant.timestampColor)
+                        }
+                        if let status, variant == .sender {
+                            Image(systemName: status.icon)
+                                .font(.system(size: 10))
+                                .foregroundColor(status.iconColor)
+                        }
+                    }
+                    .padding(.horizontal, .xs)
+                }
             }
+            .padding(.xxs)
+            .background(variant.shape.fill(variant.backgroundColor))
         }
         .frame(maxWidth: .infinity, alignment: variant.bubbleAlignment)
     }
 
     @ViewBuilder
-    private var avatarView: some View {
-        if let avatarImage = avatarImage {
-            Image(avatarImage)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 32, height: 32)
-                .clipShape(Circle())
-        } else if let avatarInitials = avatarInitials {
-            Circle()
-                .fill(Color.Background.brandInverse)
-                .frame(width: 32, height: 32)
-                .overlay(
-                    DSText(avatarInitials, style: .label, color: Color.Text.brand)
+    private var image: some View {
+        let placeholder = Rectangle().fill(Color.Chat.surface)
+        Group {
+            if let imageURL, let url = URL(string: imageURL) {
+                CachedAsyncImage(url: url, aspectRatio: .fill) { placeholder.overlay(ProgressView()) }
+            } else {
+                placeholder.overlay(
+                    Image(systemName: "photo").foregroundColor(.Chat.receiverTime)
                 )
-        } else {
-            Circle()
-                .fill(Color.Background.secondary)
-                .frame(width: 32, height: 32)
-                .overlay(
-                    Image(systemName: "person.fill")
-                        .foregroundColor(Color.Icon.placeholder)
-                )
+            }
         }
+        .frame(width: 200, height: 150)
+        .clipShape(RoundedRectangle(cornerRadius: .radiusMD))
     }
 }
 
-// MARK: - Previews
-
-#Preview("Chat Bubbles - Basic") {
-    VStack(spacing: .md) {
-        DSChatBubble(
-            message: "Hey! How are you doing?",
-            variant: .receiver,
-            timestamp: "10:30 AM",
-            avatarInitials: "JD"
-        )
-
-        DSChatBubble(
-            message: "I'm doing great, thanks for asking!",
-            variant: .sender,
-            timestamp: "10:31 AM",
-            status: .read
-        )
-
-        DSChatBubble(
-            message: "Want to grab lunch later?",
-            variant: .receiver,
-            timestamp: "10:32 AM",
-            avatarInitials: "JD"
-        )
-
-        DSChatBubble(
-            message: "Sounds good! Let's meet at 12:30",
-            variant: .sender,
-            timestamp: "10:33 AM",
-            status: .delivered
-        )
+// MARK: - Preview
+/// Mirrors the Figma Chat messages sheet, then a follow-up message and a long one.
+private struct DSChatBubbleGallery: View {
+    var body: some View {
+        ScrollView {
+            VStack(spacing: .lg) {
+                DSChatBubble(message: "This is a test message", variant: .receiver, timestamp: "9:00 AM",
+                             senderName: "Name", reactions: [.init("🔥", count: 12), .init("👍", count: 7)],
+                             avatarInitials: "AS")
+                DSChatBubble(message: "This is a test message", variant: .sender, timestamp: "9:00 AM",
+                             reactions: [.init("🔥", count: 12), .init("👍", count: 7)])
+                DSChatBubble(message: "Follow-up without the avatar", variant: .receiver, timestamp: "9:01 AM",
+                             showAvatar: false)
+                DSChatBubble(message: "A longer message wraps inside the bubble and keeps its corners, so long replies stay readable.",
+                             variant: .sender, timestamp: "9:02 AM", status: .read)
+                DSChatMediaBubble(imageURL: nil, caption: "Photo caption", variant: .receiver, timestamp: "9:03 AM",
+                                  avatarInitials: "AS")
+            }
+            .padding()
+        }
+        .background(Color.Background.primary)
     }
-    .padding()
-    .background(Color.Background.primary)
 }
 
-#Preview("Chat Bubbles - Message Status") {
-    VStack(spacing: .md) {
-        DSChatBubble(
-            message: "Sending...",
-            variant: .sender,
-            timestamp: "10:30 AM",
-            status: .sending
-        )
-
-        DSChatBubble(
-            message: "Sent message",
-            variant: .sender,
-            timestamp: "10:31 AM",
-            status: .sent
-        )
-
-        DSChatBubble(
-            message: "Delivered message",
-            variant: .sender,
-            timestamp: "10:32 AM",
-            status: .delivered
-        )
-
-        DSChatBubble(
-            message: "Read message",
-            variant: .sender,
-            timestamp: "10:33 AM",
-            status: .read
-        )
-
-        DSChatBubble(
-            message: "Failed to send",
-            variant: .sender,
-            timestamp: "10:34 AM",
-            status: .failed
-        )
-    }
-    .padding()
-    .background(Color.Background.primary)
+#Preview("RWLabs") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSChatBubbleGallery().designSystem()
 }
 
-#Preview("Chat Bubbles - Message Group") {
-    VStack(spacing: .md) {
-        DSChatMessageGroup(
-            messages: [
-                ("Hey!", nil, nil),
-                ("How are you?", nil, nil),
-                ("Long time no see!", "10:30 AM", .read)
-            ],
-            variant: .receiver,
-            avatarInitials: "AS"
-        )
-
-        DSChatMessageGroup(
-            messages: [
-                ("Hi!", nil, nil),
-                ("I'm good!", nil, nil),
-                ("Yeah, it's been a while", "10:32 AM", .delivered)
-            ],
-            variant: .sender
-        )
-    }
-    .padding()
-    .background(Color.Background.primary)
+#Preview("RWLabs Dark") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSChatBubbleGallery().designSystem().preferredColorScheme(.dark)
 }
 
-#Preview("Chat Bubbles - With Media") {
-    VStack(spacing: .md) {
-        DSChatMediaBubble(
-            imageURL: nil,
-            caption: "Check out this photo!",
-            variant: .receiver,
-            timestamp: "10:30 AM",
-            avatarInitials: "MK"
-        )
-
-        DSChatMediaBubble(
-            imageURL: nil,
-            caption: "Wow, that looks amazing!",
-            variant: .sender,
-            timestamp: "10:31 AM",
-            status: .read
-        )
-    }
-    .padding()
-    .background(Color.Background.primary)
-}
-
-#Preview("Chat Bubbles - Long Messages") {
-    VStack(spacing: .md) {
-        DSChatBubble(
-            message: "This is a much longer message to demonstrate how the chat bubble handles text wrapping. It should expand vertically to accommodate multiple lines of text while maintaining the maximum width constraint.",
-            variant: .receiver,
-            timestamp: "10:30 AM",
-            avatarInitials: "AB"
-        )
-
-        DSChatBubble(
-            message: "Indeed! The design system handles long messages gracefully by wrapping the text and maintaining proper spacing. This ensures readability even with lengthy content.",
-            variant: .sender,
-            timestamp: "10:31 AM",
-            status: .read
-        )
-    }
-    .padding()
-    .background(Color.Background.primary)
-    .preferredColorScheme(.light)
+#Preview("BW") {
+    DesignSystem.configure(theme: BWTheme())
+    return DSChatBubbleGallery().designSystem()
 }

@@ -1,14 +1,23 @@
 //
 //  DSCard.swift
-//  RWLDesignSystem
+//  RWLabsDesignSystem
 //
-//  Design system card component
+//  Cards matching the Figma "Cards Container":
+//    .container  white card, 16pt corners, 1pt gray border, soft shadow (the default)
+//    DSCardContainer  the fixed L (276×324) / S (257×290) card with the optional ＋ button
+//  The older elevations (.flat, .low, .medium, .high) are kept for existing screens.
+//
+//  DSCardContainer(size: .large, onAdd: { addGoal() }) {
+//      VStack { … }
+//  }
 //
 
 import SwiftUI
 
 // MARK: - Card Elevation
 public enum DSCardElevation {
+    /// Figma Cards Container: 1pt border and a tight shadow
+    case container
     case flat
     case low
     case medium
@@ -17,24 +26,19 @@ public enum DSCardElevation {
     @MainActor
     var shadow: DSShadow.ShadowStyle? {
         switch self {
-        case .flat:
-            return nil
-        case .low:
-            return .sm
-        case .medium:
-            return .md
-        case .high:
-            return .lg
+        case .container, .flat: nil
+        case .low:              .sm
+        case .medium:           .md
+        case .high:             .lg
         }
     }
 
     @MainActor
     var borderColor: Color? {
         switch self {
-        case .flat:
-            return Color.Border.subtle
-        default:
-            return nil
+        case .container: Color.Card.border
+        case .flat:      Color.Border.subtle
+        default:         nil
         }
     }
 }
@@ -49,39 +53,109 @@ public struct DSCard<Content: View>: View {
 
     @MainActor
     public init(
-        elevation: DSCardElevation = .medium,
+        elevation: DSCardElevation = .container,
         backgroundColor: Color? = nil,
-        cornerRadius: CGFloat = .lg,
+        cornerRadius: CGFloat = .radiusLG,
         padding: EdgeInsets = .card,
         @ViewBuilder content: () -> Content
     ) {
         self.elevation = elevation
-        self.backgroundColor = backgroundColor ?? Color.Background.primary
+        self.backgroundColor = backgroundColor ?? Color.Card.surface
         self.cornerRadius = cornerRadius
         self.padding = padding
         self.content = content()
     }
 
-
     public var body: some View {
         content
             .padding(padding)
-            .background(backgroundColor)
-            .cornerRadius(cornerRadius)
-            .border(elevation.borderColor ?? .clear, lineWidth: .thin, cornerRadius: cornerRadius)
-            .modifier(ShadowModifier(shadow: elevation.shadow))
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .background(
+                // Shadow on the shape only, so it never lands on the content
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(backgroundColor)
+                    .modifier(ShadowModifier(elevation: elevation))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .strokeBorder(elevation.borderColor ?? .clear, lineWidth: .thin)
+            )
     }
 }
 
 // MARK: - Shadow Modifier
 private struct ShadowModifier: ViewModifier {
-    let shadow: DSShadow.ShadowStyle?
+    let elevation: DSCardElevation
 
     func body(content: Content) -> some View {
-        if let shadow = shadow {
+        if elevation == .container {
+            content.shadow(color: .Card.shadow, radius: 1.5, y: 1)
+        } else if let shadow = elevation.shadow {
             content.shadow(shadow)
         } else {
             content
+        }
+    }
+}
+
+// MARK: - Card Size
+public enum DSCardSize: Sendable {
+    /// Figma L: 276×324, 32pt ＋
+    case large
+    /// Figma S: 257×290, 24pt ＋
+    case small
+
+    var width: CGFloat { self == .large ? 276 : 257 }
+    var minHeight: CGFloat { self == .large ? 324 : 290 }
+    var addButtonSize: CGFloat { self == .large ? 32 : 24 }
+}
+
+// MARK: - Card Container
+/// The Figma card shell: fixed width, minimum height, content centered, optional ＋ in the corner.
+public struct DSCardContainer<Content: View>: View {
+    let size: DSCardSize
+    let isAdded: Bool
+    let onAdd: (() -> Void)?
+    let content: Content
+
+    /// - Parameters:
+    ///   - onAdd: Shows the ＋ button when set.
+    ///   - isAdded: Swaps the ＋ for a filled brand check.
+    public init(
+        size: DSCardSize = .large,
+        isAdded: Bool = false,
+        onAdd: (() -> Void)? = nil,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.size = size
+        self.isAdded = isAdded
+        self.onAdd = onAdd
+        self.content = content()
+    }
+
+    public var body: some View {
+        DSCard(padding: EdgeInsets(top: .s32, leading: .lg, bottom: .s32, trailing: .lg)) {
+            content
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .frame(width: size.width)
+        .frame(minHeight: size.minHeight)
+        .fixedSize(horizontal: false, vertical: true)
+        .overlay(alignment: .topTrailing) {
+            if let onAdd {
+                Button(action: onAdd) {
+                    Image(systemName: isAdded ? "checkmark.circle.fill" : "plus.circle")
+                        .resizable()
+                        .fontWeight(.ultraLight)
+                        .foregroundColor(isAdded ? .Icon.brand : .Card.accessory)
+                        .frame(width: size.addButtonSize, height: size.addButtonSize)
+                        .contentShape(Circle().inset(by: -8))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(isAdded ? "Added" : "Add")
+                .padding(.top, .md)
+                .padding(.trailing, .sm)
+            }
         }
     }
 }
@@ -217,65 +291,54 @@ public struct DSInfoCard: View {
 }
 
 // MARK: - Preview
-struct DSCard_Previews: PreviewProvider {
-    static var previews: some View {
-           Group {
-               content
-                   .preferredColorScheme(.light)
+/// Mirrors the Figma Cards Container sheet (L, S) with goal-card content, then the older elevations.
+private struct DSCardGallery: View {
+    @State private var added = false
 
-               content
-                   .preferredColorScheme(.dark)
-           }
-       }
-    
-    static var content: some View {
+    var body: some View {
         ScrollView {
             VStack(spacing: .lg) {
-                // Basic Cards
-                DSCard(elevation: .flat) {
-                    DSText("Flat Card", style: .body, color: .Text.primary)
+                DSCardContainer(size: .large, isAdded: added, onAdd: { added.toggle() }) { goal }
+                DSCardContainer(size: .small, onAdd: {}) { goal }
+                DSCard {
+                    Text("Default card").fontStyle(.body).foregroundColor(.Card.title)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-
-                DSCard(elevation: .low) {
-                    VStack(alignment: .leading) {
-                        DSText("Low Elevation", style: .heading3, color: .Text.primary)
-                        DSText("This is a card with low elevation", style: .body, color: .Text.primary)
-                    }
-                }
-
-                DSCard(elevation: .high) {
-                    DSText("High Elevation Card", style: .body, color: .Text.primary)
-                }
-
-                // Content Card
-                DSContentCard(
-                    image: Image(systemName: "photo"),
-                    title: "Card Title",
-                    subtitle: "Category",
-                    description: "This is a content card with image, title, subtitle, and description. It can also have an action button.",
-                    action: {}
-                )
-
-                // Info Cards
-                DSInfoCard(
-                    icon: Image(systemName: "chart.line.uptrend.xyaxis"),
-                    iconColor: Color.Icon.brand,
-                    title: "Total Sales",
-                    value: "$24,500",
-                    trend: "+12.5%",
-                    trendIsPositive: true
-                )
-
-                DSInfoCard(
-                    icon: Image(systemName: "person.3.fill"),
-                    iconColor: Color.Semantic.info,
-                    title: "Active Users",
-                    value: "1,234",
-                    trend: "-2.3%",
-                    trendIsPositive: false
-                )
+                DSInfoCard(icon: Image(systemName: "person.3.fill"), title: "Active users", value: "1,234",
+                           trend: "+2.3%")
             }
             .padding()
         }
+        .background(Color.Background.primary)
     }
+
+    private var goal: some View {
+        VStack(spacing: 34) {
+            Image(systemName: "heart.fill")
+                .font(.system(size: 44))
+                .foregroundColor(.Button.primaryText)
+                .frame(width: 106, height: 106)
+                .background(Circle().fill(Color.Icon.brand).shadow(color: .Icon.brand.opacity(0.25), radius: 1, y: 3))
+            VStack(spacing: .md) {
+                Text("Long term relationship").fontStyle(.bodyMedium).foregroundColor(.Card.title)
+                Text("Building a lasting connection with someone special")
+                    .fontStyle(.bodySmall).foregroundColor(.Card.message).multilineTextAlignment(.center)
+            }
+        }
+    }
+}
+
+#Preview("RWLabs") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSCardGallery().designSystem()
+}
+
+#Preview("RWLabs Dark") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSCardGallery().designSystem().preferredColorScheme(.dark)
+}
+
+#Preview("BW") {
+    DesignSystem.configure(theme: BWTheme())
+    return DSCardGallery().designSystem()
 }

@@ -5,7 +5,7 @@
 //  The protocol a host app conforms to in order to supply colors to the design system.
 //
 //  The app provides the seven color families as 50–900 scales. Every role group used by
-//  components (text, background, border, button, icon, input, progress, selection, pill, badge) is derived from those scales, and
+//  components (text, background, border, button, icon, input, progress, selection, pill, badge, swipe, search, popup, card, tab, nav bar, chat) is derived from those scales, and
 //  any of them can be overridden by the palette.
 //
 //  struct AppColors: DSColorPalette {
@@ -55,6 +55,13 @@ public protocol DSColorPalette: Sendable {
     var selection:  any DSSelectionColors  { get }
     var pill:       any DSPillColors       { get }
     var badge:      any DSBadgeColors      { get }
+    var swipe:      any DSSwipeColors      { get }
+    var search:     any DSSearchColors     { get }
+    var popup:      any DSPopupColors      { get }
+    var card:       any DSCardColors       { get }
+    var tab:        any DSTabColors        { get }
+    var navBar:     any DSNavBarColors     { get }
+    var chat:       any DSChatColors       { get }
 }
 
 // MARK: - Defaults
@@ -73,6 +80,13 @@ public extension DSColorPalette {
     var selection:  any DSSelectionColors  { DSDefaultSelectionColors(palette: self) }
     var pill:       any DSPillColors       { DSDefaultPillColors(palette: self) }
     var badge:      any DSBadgeColors      { DSDefaultBadgeColors(palette: self) }
+    var swipe:      any DSSwipeColors      { DSDefaultSwipeColors(palette: self) }
+    var search:     any DSSearchColors     { DSDefaultSearchColors(palette: self) }
+    var popup:      any DSPopupColors      { DSDefaultPopupColors(palette: self) }
+    var card:       any DSCardColors       { DSDefaultCardColors(palette: self) }
+    var tab:        any DSTabColors        { DSDefaultTabColors(palette: self) }
+    var navBar:     any DSNavBarColors     { DSDefaultNavBarColors(palette: self) }
+    var chat:       any DSChatColors       { DSDefaultChatColors(palette: self) }
 }
 
 // MARK: - Fallback Palette
