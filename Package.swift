@@ -7,7 +7,7 @@ let package = Package(
     name: "RWLabsDesignSystem",
     platforms: [
           .iOS(.v18),
-          .macOS(.v10_15)
+          .macOS(.v12)
       ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
@@ -16,11 +16,15 @@ let package = Package(
             targets: ["RWLabsDesignSystem"]
         ),
     ],
+    dependencies: [
+        .package(url: "https://github.com/raunjon/RWLabsFoundation.git", from: "1.0.0"),
+    ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "RWLabsDesignSystem"
+            name: "RWLabsDesignSystem",
+            dependencies: [.product(name: "RWLabsFoundation", package: "RWLabsFoundation")]
         )
     ]
 )

@@ -4,6 +4,7 @@ A themeable SwiftUI design system for RWLabs apps, built from the **PlusOne** Fi
 
 - **Swift Package**, SwiftUI only
 - **iOS 18+** (Swift tools 6.2)
+- **Depends on [RWLabsFoundation](https://github.com/raunjon/RWLabsFoundation)**, which it re-exports, so `import RWLabsDesignSystem` also brings in its formatting and SwiftUI helpers
 - **Light & dark mode** for every token, with an app-wide Light / Dark / System preference
 - **Three themes included**: `RWLabsTheme`, `BWTheme`, `DefaultTheme` — or bring your own
 
@@ -577,7 +578,6 @@ RWLabsDesignSystem/
         │       ├── DSRoleColors.swift     # Role groups and default mappings
         │       ├── Color+DesignSystem.swift  # Color.Text.*, Color.Button.* …
         │       └── Color+Hex.swift
-        ├── Extensions/
         └── Components/                    # DS* components
 ```
 

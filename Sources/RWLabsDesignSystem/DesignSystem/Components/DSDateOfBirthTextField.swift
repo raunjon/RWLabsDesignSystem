@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import RWLabsFoundation
 
 // MARK: - DSDateOfBirthTextField Component
 public struct DSDateOfBirthTextField: View {
@@ -38,7 +39,7 @@ public struct DSDateOfBirthTextField: View {
         self.errorMessage = errorMessage
         self.isDisabled = isDisabled
         
-        if let date = text.wrappedValue.toDate(format: .yyyyMMdd) {
+        if let date = text.wrappedValue.toDate(.yyyyMMdd) {
             
             let components = Calendar.current.dateComponents([.day, .month, .year], from: date)
             
@@ -183,153 +184,4 @@ public struct DSDateOfBirthTextField: View {
         )
     }
     .padding()
-}
-
-enum DateFormat: String {
-    
-    // MARK: - ISO Formats
-    
-    /// 2026-05-10T11:53:24Z
-    case iso8601 = "yyyy-MM-dd'T'HH:mm:ssZ"
-    
-    /// 2026-05-10T11:53:24.883Z
-    case iso8601Milliseconds = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
-    
-    // MARK: - Standard Date Formats
-    
-    /// 2026-05-10
-    case yyyyMMdd = "yyyy-MM-dd"
-    
-    /// 10/05/2026
-    case ddMMyyyy = "dd/MM/yyyy"
-    
-    /// 05/10/2026
-    case mmddyyyy = "MM/dd/yyyy"
-    
-    /// 10 May 2026
-    case ddMMMYYYY = "dd MMM yyyy"
-    
-    /// 10 May, 2026
-    case ddMMMCommaYYYY = "dd MMM, yyyy"
-    
-    /// 10 May 2026, Sunday
-    case ddMMMMYYYYEEEE = "dd MMMM yyyy, EEEE"
-    
-    /// 10 May 2026
-    case ddMMMMYYYY = "dd MMMM yyyy"
-    
-    
-    // MARK: - Time Formats
-    
-    /// 23:45
-    case time24Hour = "HH:mm"
-    
-    /// 11:45 PM
-    case time12Hour = "hh:mm a"
-    
-    /// 23:45:12
-    case fullTime24Hour = "HH:mm:ss"
-    
-    /// 11:45:12 PM
-    case fullTime12Hour = "hh:mm:ss a"
-    
-    
-    // MARK: - Date & Time
-    
-    /// 2026-05-10 23:45:12
-    case fullDateTime24 = "yyyy-MM-dd HH:mm:ss"
-    
-    /// 10 May 2026 11:45 PM
-    case fullDateTime12 = "dd MMM yyyy hh:mm a"
-    
-    /// 10 May 2026 • 11:45 PM
-    case feedDate = "dd MMM yyyy • hh:mm a"
-    
-    /// Sunday, 10 May 2026 • 11:45 PM
-    case detailedFeedDate = "EEEE, dd MMM yyyy • hh:mm a"
-    
-    
-    // MARK: - Chat / Messaging
-    
-    /// 11:45 PM
-    case chatTimestamp = "hh:hh:mm a"
-    
-    /// Yesterday
-    case relativeDay = "relative"
-    
-    /// 10 May, 11:45 PM
-    case messageDate = "dd MMM, hh:mm a"
-    
-    /// Sun
-    case shortWeekday = "EEE"
-    
-    /// Sunday
-    case weekday = "EEEE"
-    
-    
-    // MARK: - Month / Year
-    
-    /// May 2026
-    case monthYear = "MMMM yyyy"
-    
-    /// May
-    case monthOnly = "MMMM"
-    
-    /// May 10
-    case monthDay = "MMMM dd"
-    
-    /// May 10, 2026
-    case monthDayYear = "MMMM dd, yyyy"
-    
-    /// May 2026
-    case shortMonthYear = "MMM yyyy"
-    
-    
-    // MARK: - API / Backend
-    
-    /// 20260510114512
-    case backendTimestamp = "yyyyMMddHHmmss"
-    
-    /// 2026_05_10
-    case backendDateUnderscore = "yyyy_MM_dd"
-    
-    /// 1746874404
-    case unixTimestamp = "unix"
-}
-
-extension Date {
-    
-    func formatted(
-        _ format: DateFormat,
-        timeZone: TimeZone = .current,
-        locale: Locale = .current
-    ) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = format.rawValue
-        formatter.timeZone = timeZone
-        formatter.locale = locale
-        
-        return formatter.string(from: self)
-    }
-}
-
-extension String {
-    
-    func toDate(
-        format: DateFormat = .iso8601Milliseconds,
-        timeZone: TimeZone = .autoupdatingCurrent,
-        locale: Locale = .current
-    ) -> Date? {
-        let formatter = DateFormatter()
-        formatter.dateFormat = format.rawValue
-        formatter.timeZone = timeZone
-        formatter.locale = locale
-        return formatter.date(from: self)
-    }
-}
-
-extension Int {
-    func toString() -> String {
-        return "\(self)"
-    }
 }
