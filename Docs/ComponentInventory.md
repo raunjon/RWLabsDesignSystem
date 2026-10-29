@@ -59,7 +59,7 @@ App source: `Sources/RWLabsDesignSystem/DesignSystem/Components/`
 
 | Component | In Figma | In app | Needs refactor |
 |---|---|---|---|
-| Action sheet | No | `DSActionSheet` | ➖ No (no design) |
+| Action sheet / bottom sheet | No (styled like the popup cards) | `.dsBottomSheet`, `DSBottomSheet`, `DSActionSheet` | ➖ No (no design) |
 | Avatar | No (appears inside user/community cards) | `DSAvatar`, `DSAvatarGroup` | ➖ No (no design) |
 | Banner | No | `DSBanner` | ➖ No (no design) |
 | Checkbox | No | `DSCheckbox`, `DSCheckboxGroup` | ➖ No (no design) |

@@ -1,14 +1,146 @@
 //
 //  DSActionSheet.swift
-//  RWLDesignSystem
+//  RWLabsDesignSystem
 //
-//  Bottom sheet with action buttons
+//  Bottom sheet. There is no Figma design; it borrows the popup cards' look: 28pt corners,
+//  heading + message, round ✕, dark buttons. Built on the system sheet, so drag-to-dismiss,
+//  detents and the keyboard work as usual.
+//
+//  Your own content:
+//
+//  .dsBottomSheet(isPresented: $showFilters, title: "Filters") {
+//      Toggle("Verified only", isOn: $verified)
+//      Button("Apply") { apply() }.primaryButtonStyle()
+//  }
+//
+//  A list of actions:
+//
+//  .actionSheet(isPresented: $showMenu, title: "Photo", actions: [
+//      .init(title: "Delete", icon: Image(systemName: "trash"), role: .destructive) { delete() },
+//      .init(title: "Cancel", role: .cancel) {},
+//  ])
 //
 
 import SwiftUI
 
-// MARK: - DSActionSheet
+// MARK: - Bottom Sheet
+/// The sheet's layout: optional header, then your content. Present it with `.dsBottomSheet`.
+public struct DSBottomSheet<Content: View>: View {
+    let title: String?
+    let message: String?
+    let showsCloseButton: Bool
+    let content: Content
 
+    @Environment(\.dismiss) private var dismiss
+
+    public init(
+        title: String? = nil,
+        message: String? = nil,
+        showsCloseButton: Bool = true,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.title = title
+        self.message = message
+        self.showsCloseButton = showsCloseButton
+        self.content = content()
+    }
+
+    public var body: some View {
+        VStack(alignment: .leading, spacing: .lg) {
+            if title != nil || message != nil || showsCloseButton {
+                header
+            }
+            content
+        }
+        .padding(.horizontal, .lg)
+        .padding(.top, .lg)
+        .padding(.bottom, .md)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+    }
+
+    private var header: some View {
+        HStack(alignment: .top, spacing: .md) {
+            VStack(alignment: .leading, spacing: .xs) {
+                if let title {
+                    Text(title)
+                        .fontStyle(.heading3)
+                        .foregroundColor(.Popup.title)
+                        .accessibilityAddTraits(.isHeader)
+                }
+                if let message {
+                    Text(message)
+                        .fontStyle(.bodySmall)
+                        .foregroundColor(.Popup.message)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if showsCloseButton {
+                Button { dismiss() } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.Popup.closeIcon)
+                        .frame(width: 24, height: 24)
+                        .background(Circle().fill(Color.Popup.closeFill))
+                        .contentShape(Circle().inset(by: -10))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Close")
+            }
+        }
+    }
+}
+
+// MARK: - Presentation
+private struct DSBottomSheetModifier<SheetContent: View>: ViewModifier {
+    @Binding var isPresented: Bool
+    let detents: Set<PresentationDetent>?
+    let onDismiss: (() -> Void)?
+    let sheet: SheetContent
+
+    /// Measured height for the fit-to-content detent
+    @State private var fittedHeight: CGFloat = 300
+
+    func body(content: Content) -> some View {
+        content.sheet(isPresented: $isPresented, onDismiss: onDismiss) {
+            sheet
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { fittedHeight = $0 }
+                .frame(maxHeight: .infinity, alignment: .top)
+                .presentationDetents(detents ?? [.height(fittedHeight)])
+                .presentationDragIndicator(.visible)
+                .presentationCornerRadius(Self.cornerRadius)
+                .presentationBackground(Color.Popup.card)
+        }
+    }
+
+    /// Figma "Corner/Extra-large", as on the popup cards
+    static var cornerRadius: CGFloat { 28 }
+}
+
+public extension View {
+    /// Presents a bottom sheet with your own content.
+    /// - Parameter detents: Sheet heights; `nil` fits the sheet to its content.
+    func dsBottomSheet<Content: View>(
+        isPresented: Binding<Bool>,
+        title: String? = nil,
+        message: String? = nil,
+        showsCloseButton: Bool = true,
+        detents: Set<PresentationDetent>? = nil,
+        onDismiss: (() -> Void)? = nil,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        modifier(DSBottomSheetModifier(
+            isPresented: isPresented,
+            detents: detents,
+            onDismiss: onDismiss,
+            sheet: DSBottomSheet(title: title, message: message, showsCloseButton: showsCloseButton, content: content)
+        ))
+    }
+}
+
+// MARK: - Action Sheet
+/// A bottom sheet of action rows, with an optional cancel button underneath.
 public struct DSActionSheet: View {
     @Binding var isPresented: Bool
 
@@ -28,81 +160,53 @@ public struct DSActionSheet: View {
         self.actions = actions
     }
 
+    private var rows: [ActionItem] { actions.filter { $0.role != .cancel } }
+    private var cancel: ActionItem? { actions.first { $0.role == .cancel } }
+
     public var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            if title != nil || message != nil {
-                VStack(spacing: .xs) {
-                    if let title = title {
-                        DSText(title, style: .heading3, color: .Text.primary)
+        DSBottomSheet(title: title, message: message, showsCloseButton: false) {
+            VStack(spacing: 0) {
+                ForEach(Array(rows.enumerated()), id: \.offset) { index, item in
+                    if index > 0 {
+                        Rectangle().fill(Color.Border.subtle).frame(height: .thin)
                     }
-
-                    if let message = message {
-                        DSText(message, style: .bodySmallMedium, color: .Text.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.lg)
-
-                Divider()
-            }
-
-            // Actions
-            ForEach(Array(actions.enumerated()), id: \.offset) { index, action in
-                if action.role != .cancel {
-                    Button(action: {
-                        action.action()
-                        if !action.keepSheetOpen {
-                            isPresented = false
-                        }
-                    }) {
-                        HStack(spacing: .sm) {
-                            if let icon = action.icon {
-                                icon
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 20, height: 20)
-                                    .foregroundColor(action.role == .destructive ? Color.Semantic.error : Color.Text.primary)
-                            }
-
-                            DSText(action.title, style: .body, color: action.role == .destructive ? .Semantic.error : .Text.primary)
-
-                            Spacer()
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.md)
-                        .background(Color.Background.primary)
-                    }
-                    .disabled(action.isDisabled)
-                    .opacity(action.isDisabled ? 0.5 : 1.0)
-                    
-                    if index < actions.count - 1 {
-                        Divider()
-                    }
+                    row(item)
                 }
             }
 
-            // Cancel button
-            if let cancelAction = actions.first(where: { $0.role == .cancel }) {
-                Divider()
-                    .padding(.vertical, .xs)
-
-                Button(action: {
-                    cancelAction.action()
-                    if !cancelAction.keepSheetOpen {
-                        isPresented = false
-                    }
-                }) {
-                    DSText(cancelAction.title, style: .body, color: .Semantic.error)
-                        .frame(maxWidth: .infinity)
-                        .padding(.md)
-                        .background(Color.Background.primary)
-                }
+            if let cancel {
+                Button(cancel.title) { run(cancel) }
+                    .secondaryButtonStyle()
             }
         }
-        .cornerRadius(.radiusMD)
-        .shadow(.sm)
+    }
+
+    private func row(_ item: ActionItem) -> some View {
+        let tint: Color = item.role == .destructive ? .Semantic.error : .Popup.title
+        return Button { run(item) } label: {
+            HStack(spacing: .sm) {
+                if let icon = item.icon {
+                    icon
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
+                }
+                Text(item.title)
+                    .fontStyle(.body)
+                Spacer(minLength: 0)
+            }
+            .foregroundColor(tint)
+            .frame(minHeight: 52)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(item.isDisabled)
+        .opacity(item.isDisabled ? 0.5 : 1)
+    }
+
+    private func run(_ item: ActionItem) {
+        item.action()
+        if !item.keepSheetOpen { isPresented = false }
     }
 
     public struct ActionItem {
@@ -137,70 +241,94 @@ public struct DSActionSheet: View {
     }
 }
 
-// MARK: - View Modifier
-
 public extension View {
+    /// Presents `DSActionSheet`, sized to its rows.
     func actionSheet(
         isPresented: Binding<Bool>,
         title: String? = nil,
         message: String? = nil,
         actions: [DSActionSheet.ActionItem]
     ) -> some View {
-        self.sheet(isPresented: isPresented) {
-            DSActionSheet(
-                isPresented: isPresented,
-                title: title,
-                message: message,
-                actions: actions
-            )
-            .presentationDetents([.medium, .large])
-        }
+        modifier(DSBottomSheetModifier(
+            isPresented: isPresented,
+            detents: nil,
+            onDismiss: nil,
+            sheet: DSActionSheet(isPresented: isPresented, title: title, message: message, actions: actions)
+        ))
     }
 }
 
 // MARK: - Preview
+/// The sheet bodies inline (sheets don't show in a static canvas), then buttons that present them.
+private struct DSActionSheetGallery: View {
+    @State private var showsFilters = false
+    @State private var showsActions = false
+    @State private var verified = true
+    @State private var distance = "Nearby"
 
-#Preview {
-    struct PreviewWrapper: View {
-        @State private var showSheet = true
-
-        var body: some View {
+    var body: some View {
+        ScrollView {
             VStack(spacing: .lg) {
-                DSButton(title: "Show Action Sheet", variant: .primary) {
-                    showSheet = true
-                }
+                filters
+                    .background(RoundedRectangle(cornerRadius: 28).fill(Color.Popup.card))
+                actionSheet(isPresented: .constant(true))
+                    .background(RoundedRectangle(cornerRadius: 28).fill(Color.Popup.card))
 
-                Spacer()
+                Button("Show filters sheet") { showsFilters = true }.primaryButtonStyle(size: .medium)
+                Button("Show action sheet") { showsActions = true }.secondaryButtonStyle(size: .medium)
             }
             .padding()
-            .sheet(isPresented: $showSheet) {
-                DSActionSheet(
-                    isPresented: $showSheet,
-                    title: "Delete Item",
-                    message: "This action cannot be undone",
-                    actions: [
-                        .init(
-                            title: "Delete",
-                            icon: Image(systemName: "trash"),
-                            role: .destructive,
-                            action: { print("Deleted") }
-                        ),
-                        .init(
-                            title: "Archive",
-                            icon: Image(systemName: "archivebox"),
-                            action: { print("Archived") }
-                        ),
-                        .init(
-                            title: "Cancel",
-                            role: .cancel,
-                            action: { print("Cancelled") }
-                        )
-                    ]
-                )
-                .presentationDetents([.medium])
-            }
         }
+        .background(Color.Background.secondary)
+        .dsBottomSheet(isPresented: $showsFilters, title: "Filters", message: "Show people who match") {
+            filterControls
+        }
+        .actionSheet(isPresented: $showsActions, title: "Photo", actions: actions)
     }
 
-    return PreviewWrapper()
+    private var filters: some View {
+        DSBottomSheet(title: "Filters", message: "Show people who match") { filterControls }
+    }
+
+    @ViewBuilder
+    private var filterControls: some View {
+        HStack(spacing: .sm) {
+            ForEach(["Nearby", "City", "Anywhere"], id: \.self) { option in
+                Toggle(option, isOn: Binding(get: { distance == option }, set: { if $0 { distance = option } }))
+                    .pillStyle()
+            }
+        }
+        Toggle("Verified profiles only", isOn: $verified)
+            .fontStyle(.body)
+            .tint(.Icon.brand)
+        Button("Apply") { showsFilters = false }.primaryButtonStyle()
+    }
+
+    private func actionSheet(isPresented: Binding<Bool>) -> some View {
+        DSActionSheet(isPresented: isPresented, title: "Photo", actions: actions)
+    }
+
+    private var actions: [DSActionSheet.ActionItem] {
+        [
+            .init(title: "Set as main photo", icon: Image(systemName: "star")) {},
+            .init(title: "Replace", icon: Image(systemName: "arrow.triangle.2.circlepath")) {},
+            .init(title: "Delete", icon: Image(systemName: "trash"), role: .destructive) {},
+            .init(title: "Cancel", role: .cancel) {},
+        ]
+    }
+}
+
+#Preview("RWLabs") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSActionSheetGallery().designSystem()
+}
+
+#Preview("RWLabs Dark") {
+    DesignSystem.configure(theme: RWLabsTheme())
+    return DSActionSheetGallery().designSystem().preferredColorScheme(.dark)
+}
+
+#Preview("BW") {
+    DesignSystem.configure(theme: BWTheme())
+    return DSActionSheetGallery().designSystem()
 }
