@@ -10,9 +10,13 @@ import SwiftUI
 // MARK: - DSTextField Component
 /// Convenience field with title, placeholder, helper/error text and a clear button,
 /// built on `DSInputField` and `dsInputFieldStyle`.
+///
+/// Pass `validate` to check the text: its error shows once the user has typed,
+/// and the result is reported to the nearest `.formValidity(_:)`.
 public struct DSTextField: View {
     @Binding var text: String
     @FocusState private var isFocused: Bool
+    @State private var isDirty = false
 
     let label: String?
     let placeholder: String
@@ -27,6 +31,7 @@ public struct DSTextField: View {
     let trailingIcon: AnyView?
     let size: DSInputFieldSize
     let showsClearButton: Bool
+    let validate: ((String) -> String?)?
 
     init(
         _ text: Binding<String>,
@@ -42,9 +47,10 @@ public struct DSTextField: View {
         autocapitalization: UITextAutocapitalizationType = .sentences,
         trailingIcon: AnyView? = nil,
         size: DSInputFieldSize = .large,
-        showsClearButton: Bool = true
+        showsClearButton: Bool = true,
+        validate: ((String) -> String?)? = nil
     ) {
-        self.init(text: text, label: label, placeholder: placeholder, helperText: helperText, errorMessage: errorMessage, isDisabled: isDisabled, isSecure: isSecure, icon: icon, keyboardType: keyboardType, textContentType: textContentType, autocapitalization: autocapitalization, trailingIcon: trailingIcon, size: size, showsClearButton: showsClearButton)
+        self.init(text: text, label: label, placeholder: placeholder, helperText: helperText, errorMessage: errorMessage, isDisabled: isDisabled, isSecure: isSecure, icon: icon, keyboardType: keyboardType, textContentType: textContentType, autocapitalization: autocapitalization, trailingIcon: trailingIcon, size: size, showsClearButton: showsClearButton, validate: validate)
     }
 
     public init(
@@ -61,7 +67,8 @@ public struct DSTextField: View {
         autocapitalization: UITextAutocapitalizationType = .sentences,
         trailingIcon: AnyView? = nil,
         size: DSInputFieldSize = .large,
-        showsClearButton: Bool = true
+        showsClearButton: Bool = true,
+        validate: ((String) -> String?)? = nil
     ) {
         self._text = text
         self.label = label
@@ -77,6 +84,7 @@ public struct DSTextField: View {
         self.trailingIcon = trailingIcon
         self.size = size
         self.showsClearButton = showsClearButton
+        self.validate = validate
     }
 
     private var capitalization: TextInputAutocapitalization {
@@ -92,12 +100,20 @@ public struct DSTextField: View {
         Text(placeholder).foregroundColor(.Input.placeholder)
     }
 
+    /// An explicit `errorMessage` wins; a `validate` error waits until the user has typed
+    private func shownError(_ validationError: String?) -> String? {
+        errorMessage ?? (isDirty ? validationError : nil)
+    }
+
     public var body: some View {
+        let validationError = validate?(text)
+        let shownError = shownError(validationError)
+
         DSInputField(
             title: label,
-            helper: errorMessage ?? helperText,
+            helper: shownError ?? helperText,
             size: size,
-            status: errorMessage != nil ? .error : .normal,
+            status: shownError != nil ? .error : .normal,
             isFocused: isFocused
         ) {
             HStack(spacing: .xs) {
@@ -137,6 +153,10 @@ public struct DSTextField: View {
                 isFocused = false
             }
         }
+        .onChange(of: text) { _, _ in
+            isDirty = true
+        }
+        .preference(key: DSFormValidityKey.self, value: validationError == nil)
     }
 }
 
